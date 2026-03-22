@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import { isLoggedIn, removeToken } from "./api";
+import { isLoggedIn, removeToken, sendChatMessage } from "./api";
 const THEMES = {
   warm: {
     name: "Warm Earthy",
@@ -74,14 +74,6 @@ const HISTORICAL_ARTISTS = [
   { name: "Rembrandt", era: "Dutch Golden Age", known: "The Night Watch, self-portraits", emoji: "🕯️" },
 ];
 
-const CHAT_RESPONSES = [
-  "That's a fascinating artistic concept! Consider exploring complementary colors to create visual harmony — warm terracottas paired with cool teals can be stunning.",
-  "Great question about technique! For watercolors, always work light to dark and let each layer dry completely before adding the next.",
-  "For digital art, I'd recommend starting with a limited palette of 5-7 colors. This forces creativity and creates cohesion across your piece.",
-  "Composition tip: Try the rule of thirds — divide your canvas into a 3×3 grid and place key elements at the intersections for a more dynamic feel.",
-  "Inspiration block? Take a walk and notice textures around you — tree bark, worn walls, fabric patterns. Nature is the greatest art teacher.",
-  "For oil painting beginners, start with a limited palette: cadmium yellow, alizarin crimson, ultramarine blue, and titanium white. You can mix almost anything from these.",
-];
 
 const STYLE_TAGS = ["All", "Impressionism", "Digital Art", "Watercolor", "Abstract", "Realism", "Surrealism", "Sketch", "Oil Painting", "Pixel Art"];
 
@@ -133,17 +125,36 @@ const [currentUser, setCurrentUser] = useState(null);
     });
   };
 
-  const sendChat = () => {
-    if (!chatInput.trim()) return;
+  const sendChat = async () => {
+    if (!chatInput.trim() || isTyping) return;
     const userMsg = { role: "user", text: chatInput };
-    setChatMessages(prev => [...prev, userMsg]);
+    const updatedMessages = [...chatMessages, userMsg];
+    setChatMessages(updatedMessages);
     setChatInput("");
     setIsTyping(true);
-    setTimeout(() => {
-      const response = CHAT_RESPONSES[Math.floor(Math.random() * CHAT_RESPONSES.length)];
-      setChatMessages(prev => [...prev, { role: "assistant", text: response }]);
+    try {
+      // Build history in the format backend expects
+      const history = chatMessages.map(msg => ({
+        role: msg.role,
+        content: msg.text,
+      }));
+      const data = await sendChatMessage(chatInput, history);
+      if (data.reply) {
+        setChatMessages(prev => [...prev, { role: "assistant", text: data.reply }]);
+      } else {
+        setChatMessages(prev => [...prev, { 
+          role: "assistant", 
+          text: "Sorry, I couldn't connect right now. Please try again!" 
+        }]);
+      }
+    } catch (error) {
+      setChatMessages(prev => [...prev, { 
+        role: "assistant", 
+        text: "Connection error. Make sure the backend is running!" 
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1200 + Math.random() * 800);
+    }
   };
 
   const handleGenerate = () => {

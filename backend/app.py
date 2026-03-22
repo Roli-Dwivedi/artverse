@@ -1,13 +1,16 @@
+from dotenv import load_dotenv
+load_dotenv()
 from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt
 import os
 
+
 def create_app():
     app = Flask(__name__)
     
-    app.config['SECRET_KEY'] = 'artverse-secret-key-2026'
-    app.config['JWT_SECRET_KEY'] = 'artverse-jwt-secret-2026'
+    app.config['SECRET_KEY'] = 'artverse-secret-key-2026-very-secure-long-key'
+    app.config['JWT_SECRET_KEY'] = 'artverse-jwt-secret-2026-very-secure-long-key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///artverse.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -20,10 +23,12 @@ def create_app():
     from routes.auth import auth_bp
     from routes.artworks import artworks_bp
     from routes.communities import communities_bp
+    from routes.chat import chat_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(artworks_bp, url_prefix='/api/artworks')
     app.register_blueprint(communities_bp, url_prefix='/api/communities')
+    app.register_blueprint(chat_bp)
 
     with app.app_context():
         db.create_all()

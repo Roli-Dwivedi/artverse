@@ -44,3 +44,17 @@ export const saveToken = (token) => localStorage.setItem("artverse_token", token
 export const getToken = () => localStorage.getItem("artverse_token");
 export const removeToken = () => localStorage.removeItem("artverse_token");
 export const isLoggedIn = () => !!getToken();
+
+// ── CHAT BOX ──────────────────────────────
+export const sendChatMessage = async (message, history) => {
+  const token = localStorage.getItem('artverse_token');
+  const response = await fetch('http://localhost:5000/api/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ message, history })
+  });
+  return response.json();
+};
