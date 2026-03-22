@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import { isLoggedIn, removeToken, sendChatMessage, detectArtStyle, detectAIArt } from "./api";
+import { isLoggedIn, removeToken, sendChatMessage, detectArtStyle, detectAIArt, generateArt } from "./api";
 const THEMES = {
   warm: {
     name: "Warm Earthy",
@@ -95,7 +95,9 @@ const [currentUser, setCurrentUser] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [generatePrompt, setGeneratePrompt] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [generatedArt, setGeneratedArt] = useState(null);
+const [generatedArt, setGeneratedArt] = useState(null);
+const [generateStyle, setGenerateStyle] = useState("Impressionism");
+const [generateError, setGenerateError] = useState(null);
  const [detectResult, setDetectResult] = useState(null);
 const [detectTab, setDetectTab] = useState("style");
 const [detectImage, setDetectImage] = useState(null);
@@ -160,19 +162,29 @@ const [detecting, setDetecting] = useState(false);
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!generatePrompt.trim()) return;
     setGenerating(true);
     setGeneratedArt(null);
-    setTimeout(() => {
-      const colors = ["#1a3a6b", "#3b1f6b", "#1e5c3a", "#6b1f1f", "#2d5a6b", "#5c3a1e"];
-      setGeneratedArt({
-        prompt: generatePrompt,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        style: ART_STYLES_DETECT[Math.floor(Math.random() * ART_STYLES_DETECT.length)],
-      });
+    setGenerateError(null);
+    try {
+      const data = await generateArt(generatePrompt, generateStyle);
+      if (data.image) {
+        setGeneratedArt({
+          image: data.image,
+          prompt: data.prompt,
+          style: generateStyle,
+        });
+      } else if (data.loading) {
+        setGenerateError("Model is warming up! Wait 20 seconds and try again.");
+      } else {
+        setGenerateError(data.error || "Generation failed. Try again!");
+      }
+    } catch (err) {
+      setGenerateError("Connection error. Make sure backend is running!");
+    } finally {
       setGenerating(false);
-    }, 2500);
+    }
   };
 
   const handleImageUpload = (e) => {
@@ -466,7 +478,7 @@ const [detecting, setDetecting] = useState(false);
           </div>
         )}
 
-        {/* ── AI STUDIO TAB ── */}
+{/* ── AI STUDIO TAB ── */}
         {activeTab === "generate" && (
           <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
             <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 8 }}>
@@ -486,7 +498,7 @@ const [detecting, setDetecting] = useState(false);
               <textarea
                 value={generatePrompt}
                 onChange={e => setGeneratePrompt(e.target.value)}
-                placeholder="e.g. A misty forest at dawn painted in impressionist style with warm golden light filtering through ancient oak trees..."
+                placeholder="e.g. A misty forest at dawn with warm golden light filtering through ancient oak trees..."
                 rows={4}
                 style={{
                   width: "100%", padding: "14px 16px", borderRadius: 12,
@@ -495,7 +507,25 @@ const [detecting, setDetecting] = useState(false);
                   resize: "vertical", outline: "none", lineHeight: 1.6,
                 }}
               />
-              <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+
+              {/* Style selector */}
+              <div style={{ marginTop: 16, marginBottom: 8, fontSize: 13, color: T.textMuted, fontWeight: 600 }}>
+                SELECT STYLE
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                {["Impressionism", "Oil Painting", "Watercolor", "Digital Art", "Sketch", "Surrealism", "Abstract", "Renaissance"].map(s => (
+                  <button key={s} onClick={() => setGenerateStyle(s)} style={{
+                    padding: "6px 14px", borderRadius: 20,
+                    border: `1px solid ${generateStyle === s ? T.accent : T.border}`,
+                    background: generateStyle === s ? T.accentSoft : T.surface,
+                    color: generateStyle === s ? T.accent : T.textMuted,
+                    cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice], transition: "all 0.2s",
+                  }}>{s}</button>
+                ))}
+              </div>
+
+              {/* Quick prompts */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
                 {["Impressionist forest at sunset", "Abstract ocean waves in neon", "Portrait in Renaissance style", "Surreal dreamscape with floating islands"].map(p => (
                   <button key={p} onClick={() => setGeneratePrompt(p)} style={{
                     padding: "6px 12px", borderRadius: 8, border: `1px solid ${T.border}`,
@@ -504,16 +534,25 @@ const [detecting, setDetecting] = useState(false);
                   }}>{p}</button>
                 ))}
               </div>
+
               <button onClick={handleGenerate} disabled={generating || !generatePrompt.trim()} style={{
-                marginTop: 20, width: "100%", padding: "14px 24px", borderRadius: 12,
-                border: "none", cursor: generating ? "not-allowed" : "pointer",
-                background: generating ? T.surface : `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
-                color: generating ? T.textMuted : "#fff",
+                width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
+                cursor: generating || !generatePrompt.trim() ? "not-allowed" : "pointer",
+                background: generating || !generatePrompt.trim() ? T.surface : `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+                color: generating || !generatePrompt.trim() ? T.textMuted : "#fff",
                 fontSize: 16, fontWeight: 600, fontFamily: fonts[fontChoice],
                 transition: "all 0.3s", boxShadow: generating ? "none" : T.shadowGlow,
               }}>
-                {generating ? "⏳ Creating your masterpiece..." : "✨ Generate Art"}
+                {generating ? "⏳ Creating your masterpiece... (may take 30s)" : "✨ Generate Art"}
               </button>
+
+              {generateError && (
+                <div style={{
+                  marginTop: 12, padding: "12px 16px", borderRadius: 10,
+                  background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+                  color: "#ef4444", fontSize: 14,
+                }}>⚠️ {generateError}</div>
+              )}
             </div>
 
             {/* Generated art preview */}
@@ -522,31 +561,26 @@ const [detecting, setDetecting] = useState(false);
                 background: T.gradCard, border: `1px solid ${T.accent}`,
                 borderRadius: 20, padding: 24, boxShadow: T.shadowGlow,
               }}>
-                <div style={{
-                  height: 360, borderRadius: 12, marginBottom: 20,
-                  background: `linear-gradient(135deg, ${generatedArt.color}, ${generatedArt.color}66, ${T.accent}33)`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  position: "relative", overflow: "hidden",
-                }}>
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    background: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.02) 10px, rgba(255,255,255,0.02) 11px)`,
-                  }} />
-                  <div style={{ textAlign: "center", position: "relative" }}>
-                    <div style={{ fontSize: 72, marginBottom: 12 }}>🎨</div>
-                    <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14 }}>AI Generated • {generatedArt.style}</div>
-                  </div>
-                </div>
+                <img
+                  src={generatedArt.image}
+                  alt={generatedArt.prompt}
+                  style={{ width: "100%", borderRadius: 12, marginBottom: 16, display: "block" }}
+                />
                 <div style={{ color: T.textMuted, fontSize: 14, fontStyle: "italic", marginBottom: 12 }}>
-                  "{generatedArt.prompt}"
+                  "{generatePrompt}" • {generatedArt.style}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <button style={{
+                  <button onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = generatedArt.image;
+                    link.download = 'artverse-generated.jpg';
+                    link.click();
+                  }} style={{
                     flex: 1, padding: "10px 16px", borderRadius: 10,
                     border: `1px solid ${T.accent}`, background: T.accentSoft, color: T.accent,
                     cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
-                  }}>💾 Save to Gallery</button>
-                  <button style={{
+                  }}>💾 Download Art</button>
+                  <button onClick={handleGenerate} style={{
                     padding: "10px 16px", borderRadius: 10,
                     border: `1px solid ${T.border}`, background: T.surface, color: T.text,
                     cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],

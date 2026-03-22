@@ -82,3 +82,17 @@ export const detectAIArt = async (imageFile) => {
   });
   return response.json();
 };
+
+// ── AI ART GENERATION ──────────────────────────────
+export const generateArt = async (prompt, style) => {
+  const token = localStorage.getItem('artverse_token');
+  const response = await fetch('http://localhost:5000/api/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ prompt, style })
+  });
+  return response.json();
+};
