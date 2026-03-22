@@ -96,3 +96,56 @@ export const generateArt = async (prompt, style) => {
   });
   return response.json();
 };
+
+// ── PROFILE ──────────────────────────────
+export const getProfile = async () => {
+  const token = getToken();
+  const res = await fetch(`http://localhost:5000/api/profile`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.json();
+};
+
+export const updateProfile = async (data) => {
+  const token = getToken();
+  const res = await fetch(`http://localhost:5000/api/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+};
+
+export const saveArtwork = async (data) => {
+  const token = getToken();
+  const res = await fetch(`http://localhost:5000/api/artworks/save`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+};
+
+export const getSavedArtworks = async () => {
+  const token = getToken();
+  console.log("Token being sent:", token); // add this line temporarily
+  const res = await fetch(`http://localhost:5000/api/artworks/saved`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.json();
+};
+
+export const deleteSavedArtwork = async (id) => {
+  const token = getToken();
+  const res = await fetch(`http://localhost:5000/api/artworks/saved/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.json();
+};

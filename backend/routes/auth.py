@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 from models.user import User
+from datetime import timedelta
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -10,7 +11,6 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     data = request.get_json()
     
-    # Validation
     if not data.get('username') or not data.get('email') or not data.get('password'):
         return jsonify({'error': 'All fields required'}), 400
     
@@ -20,7 +20,6 @@ def register():
     if User.query.filter_by(username=data['username']).first():
         return jsonify({'error': 'Username already taken'}), 409
 
-    # Create user
     user = User(
         username=data['username'],
         email=data['email'],
@@ -30,7 +29,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    token = create_access_token(identity=str(user.id))
+    token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=7))
     return jsonify({
         'message': 'Account created successfully!',
         'token': token,
@@ -47,7 +46,7 @@ def login():
     if not user or not check_password_hash(user.password_hash, data.get('password', '')):
         return jsonify({'error': 'Invalid email or password'}), 401
 
-    token = create_access_token(identity=str(user.id))
+    token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=7))
     return jsonify({
         'message': 'Login successful!',
         'token': token,

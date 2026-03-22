@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import { isLoggedIn, removeToken, sendChatMessage, detectArtStyle, detectAIArt, generateArt } from "./api";
+import { isLoggedIn, removeToken, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile } from "./api";
 const THEMES = {
   warm: {
     name: "Warm Earthy",
@@ -107,12 +107,29 @@ const [detecting, setDetecting] = useState(false);
   const [accentColor, setAccentColor] = useState("#2dd4c4");
   const [fontChoice, setFontChoice] = useState("default");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
+const [savedArtworks, setSavedArtworks] = useState([]);
+const [profileLoading, setProfileLoading] = useState(false);
+const [editBio, setEditBio] = useState("");
+const [editAvatar, setEditAvatar] = useState("");
+const [showEditProfile, setShowEditProfile] = useState(false);
   const chatEndRef = useRef(null);
   const T = THEMES[theme];
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
+  useEffect(() => {
+  chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [chatMessages]);
+
+useEffect(() => {
+  if (activeTab === "profile") {
+    getSavedArtworks().then(data => {
+      if (Array.isArray(data)) setSavedArtworks(data);
+    });
+  }
+}, [activeTab]);
 
   const filteredArtworks = SAMPLE_ARTWORKS.filter(a => {
     const matchSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -234,6 +251,7 @@ const [detecting, setDetecting] = useState(false);
     { id: "chat", label: "Muse AI", icon: "🤖" },
     { id: "communities", label: "Communities", icon: "🏘️" },
     { id: "history", label: "Masters", icon: "🏛️" },
+    { id: "profile", label: "Profile", icon: "👤" },
   ];
 
   const fonts = {
@@ -463,7 +481,23 @@ const [detecting, setDetecting] = useState(false);
                       }}>
                         {likedArtworks.has(art.id) ? "❤️" : "🤍"} {art.likes + (likedArtworks.has(art.id) ? 1 : 0)}
                       </button>
-                      <span style={{ fontSize: 12, color: T.textSubtle }}>💬 View</span>
+                      <button onClick={async () => {
+                        const result = await saveArtwork({
+                          image_url: `https://placehold.co/400x400/${art.color.replace("#","")}?text=${art.title}`,
+                          title: art.title,
+                          prompt: art.style,
+                           style: art.style,
+                           source_tab: "gallery"
+                          });
+                          if (result.id) {
+                            setSavedArtworks(prev => [...prev, result]);
+                            alert("Saved! 🎨");
+                          } 
+                        }} style={{
+                            background: T.surface, border: `1px solid ${T.border}`,
+                            color: T.textMuted, borderRadius: 8, padding: "5px 12px",
+                           cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice],
+                          }}>🔖 Save</button>
                     </div>
                   </div>
                 </div>
@@ -903,6 +937,191 @@ const [detecting, setDetecting] = useState(false);
             </div>
           </div>
         )}
+        {/* ── PROFILE TAB ── */}
+{activeTab === "profile" && (
+  <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
+    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 24 }}>
+      👤 My <span style={{ color: T.accent }}>Profile</span>
+    </h2>
+
+    {/* Profile Card */}
+    <div style={{
+      background: T.gradCard, border: `1px solid ${T.border}`,
+      borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: T.shadow,
+      display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap",
+    }}>
+      {/* Avatar */}
+      <div style={{
+        width: 80, height: 80, borderRadius: "50%", flexShrink: 0,
+        background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 36, border: `3px solid ${T.accent}`,
+      }}>
+        {currentUser?.avatar || "🎨"}
+      </div>
+
+      {/* Info */}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
+          {currentUser?.username || "Artist"}
+        </div>
+        <div style={{ color: T.textMuted, fontSize: 14, marginBottom: 8 }}>
+          {currentUser?.email}
+        </div>
+        <div style={{ color: T.textMuted, fontSize: 14, marginBottom: 16, fontStyle: "italic" }}>
+          {currentUser?.bio || "No bio yet — tell the world about your art!"}
+        </div>
+        <button onClick={() => {
+          setEditBio(currentUser?.bio || "");
+          setEditAvatar(currentUser?.avatar || "🎨");
+          setShowEditProfile(true);
+        }} style={{
+          padding: "8px 20px", borderRadius: 10,
+          border: `1px solid ${T.accent}`, background: T.accentSoft,
+          color: T.accent, cursor: "pointer", fontSize: 14,
+          fontFamily: fonts[fontChoice],
+        }}>✏️ Edit Profile</button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "flex", gap: 16 }}>
+        <div style={{
+          textAlign: "center", padding: "16px 24px", borderRadius: 14,
+          background: T.surface, border: `1px solid ${T.border}`,
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: T.accent }}>
+            {savedArtworks.length}
+          </div>
+          <div style={{ fontSize: 12, color: T.textMuted, marginTop: 4 }}>Saved</div>
+        </div>
+      </div>
+    </div>
+
+    {/* Edit Profile Modal */}
+    {showEditProfile && (
+      <div style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 1000, padding: "1rem",
+      }} onClick={e => e.target === e.currentTarget && setShowEditProfile(false)}>
+        <div style={{
+          background: T.bgCard, borderRadius: 20, padding: 28,
+          width: "100%", maxWidth: 440, border: `1px solid ${T.border}`,
+          boxShadow: T.shadow,
+        }}>
+          <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, marginBottom: 20 }}>
+            Edit Profile
+          </h3>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", fontSize: 13, color: T.textMuted, marginBottom: 6, fontWeight: 600 }}>
+              AVATAR EMOJI
+            </label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+              {["🎨", "🖌️", "✏️", "🖼️", "🎭", "🌟", "🦋", "🌸"].map(emoji => (
+                <button key={emoji} onClick={() => setEditAvatar(emoji)} style={{
+                  width: 44, height: 44, borderRadius: 10, fontSize: 22,
+                  border: `2px solid ${editAvatar === emoji ? T.accent : T.border}`,
+                  background: editAvatar === emoji ? T.accentSoft : T.surface,
+                  cursor: "pointer",
+                }}>{emoji}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: "block", fontSize: 13, color: T.textMuted, marginBottom: 6, fontWeight: 600 }}>
+              BIO
+            </label>
+            <textarea
+              value={editBio}
+              onChange={e => setEditBio(e.target.value)}
+              maxLength={500}
+              rows={4}
+              placeholder="Tell the ArtVerse community about yourself..."
+              style={{
+                width: "100%", padding: "12px 14px", borderRadius: 10,
+                border: `1px solid ${T.border}`, background: T.inputBg,
+                color: T.text, fontSize: 14, fontFamily: fonts[fontChoice],
+                resize: "vertical", outline: "none", boxSizing: "border-box",
+              }}
+            />
+            <div style={{ textAlign: "right", fontSize: 12, color: T.textMuted, marginTop: 4 }}>
+              {editBio.length}/500
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setShowEditProfile(false)} style={{
+              flex: 1, padding: "10px", borderRadius: 10,
+              border: `1px solid ${T.border}`, background: T.surface,
+              color: T.text, cursor: "pointer", fontSize: 14,
+              fontFamily: fonts[fontChoice],
+            }}>Cancel</button>
+            <button onClick={async () => {
+  const result = await updateProfile({ bio: editBio, avatar: editAvatar });
+setCurrentUser(prev => ({ ...prev, bio: editBio, avatar: editAvatar }));
+setShowEditProfile(false);
+}} style={{
+              flex: 1, padding: "10px", borderRadius: 10, border: "none",
+              background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+              color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600,
+              fontFamily: fonts[fontChoice],
+            }}>Save Changes</button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Saved Artworks */}
+    <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, fontFamily: "'Cormorant Garamond', serif" }}>
+      🖼️ Saved Artworks ({savedArtworks.length})
+    </h3>
+
+    {savedArtworks.length === 0 ? (
+      <div style={{
+        textAlign: "center", padding: "48px 24px",
+        background: T.bgCard, borderRadius: 20,
+        border: `2px dashed ${T.border}`, color: T.textMuted,
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🎨</div>
+        <div style={{ fontSize: 16, marginBottom: 4 }}>No saved artworks yet</div>
+        <div style={{ fontSize: 14 }}>Hit the 🤍 button on any artwork to save it here</div>
+      </div>
+    ) : (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
+        {savedArtworks.map(artwork => (
+          <div key={artwork.id} style={{
+            borderRadius: 14, overflow: "hidden",
+            background: T.gradCard, border: `1px solid ${T.border}`,
+            boxShadow: T.shadow, position: "relative",
+            transition: "transform 0.2s",
+          }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+          >
+            <img src={artwork.image_url} alt={artwork.title}
+              style={{ width: "100%", aspectRatio: "1", objectFit: "cover", display: "block" }}
+              onError={e => { e.target.style.background = T.surface; e.target.style.minHeight = "160px"; }}
+            />
+            <div style={{ padding: "10px 12px" }}>
+              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{artwork.title}</div>
+              <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>{artwork.source_tab}</div>
+              <button onClick={async () => {
+                await deleteSavedArtwork(artwork.id);
+                setSavedArtworks(prev => prev.filter(a => a.id !== artwork.id));
+              }} style={{
+                width: "100%", padding: "6px", borderRadius: 8, border: "none",
+                background: "rgba(239,68,68,0.15)", color: "#ef4444",
+                cursor: "pointer", fontSize: 12, fontFamily: fonts[fontChoice],
+              }}>✕ Remove</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
       </main>
 
       {/* FOOTER */}

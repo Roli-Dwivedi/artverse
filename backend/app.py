@@ -26,6 +26,7 @@ def create_app():
     from routes.chat import chat_bp
     from routes.detect import detect_bp
     from routes.generate import generate_bp
+    from routes.profile import profile_bp 
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(artworks_bp, url_prefix='/api/artworks')
@@ -33,6 +34,7 @@ def create_app():
     app.register_blueprint(chat_bp)
     app.register_blueprint(detect_bp)
     app.register_blueprint(generate_bp)
+    app.register_blueprint(profile_bp)
 
     with app.app_context():
         db.create_all()
