@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import { isLoggedIn, removeToken, sendChatMessage } from "./api";
+import { isLoggedIn, removeToken, sendChatMessage, detectArtStyle, detectAIArt } from "./api";
 const THEMES = {
   warm: {
     name: "Warm Earthy",
@@ -96,8 +96,11 @@ const [currentUser, setCurrentUser] = useState(null);
   const [generatePrompt, setGeneratePrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [generatedArt, setGeneratedArt] = useState(null);
-  const [detectResult, setDetectResult] = useState(null);
-  const [detectTab, setDetectTab] = useState("style");
+ const [detectResult, setDetectResult] = useState(null);
+const [detectTab, setDetectTab] = useState("style");
+const [detectImage, setDetectImage] = useState(null);
+const [detectImagePreview, setDetectImagePreview] = useState(null);
+const [detecting, setDetecting] = useState(false);
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [accentColor, setAccentColor] = useState("#2dd4c4");
   const [fontChoice, setFontChoice] = useState("default");
@@ -172,29 +175,44 @@ const [currentUser, setCurrentUser] = useState(null);
     }, 2500);
   };
 
-  const handleDetect = () => {
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setDetectImage(file);
     setDetectResult(null);
-    setTimeout(() => {
+    const reader = new FileReader();
+    reader.onload = (ev) => setDetectImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleDetect = async () => {
+    if (!detectImage) {
+      alert("Please upload an image first!");
+      return;
+    }
+    setDetectResult(null);
+    setDetecting(true);
+    try {
       if (detectTab === "style") {
-        setDetectResult({
-          type: "style",
-          style: ART_STYLES_DETECT[Math.floor(Math.random() * ART_STYLES_DETECT.length)],
-          mood: ART_MOODS[Math.floor(Math.random() * ART_MOODS.length)],
-          confidence: Math.floor(75 + Math.random() * 22),
-          period: ["14th–17th Century", "Modern (1900s)", "Contemporary", "19th Century"][Math.floor(Math.random() * 4)],
-        });
+        const data = await detectArtStyle(detectImage);
+        if (data.result) {
+          setDetectResult({ type: "style", ...data.result });
+        } else {
+          alert("Could not analyze image. Try another!");
+        }
       } else {
-        const isAI = Math.random() > 0.5;
-        setDetectResult({
-          type: "ai",
-          isAI,
-          confidence: Math.floor(72 + Math.random() * 25),
-          signals: isAI
-            ? ["Uniform texture patterns detected", "Perfect symmetry in brush strokes", "Atypical color gradient transitions"]
-            : ["Natural hand-tremor in line work", "Organic paint layering visible", "Authentic impasto texture detected"],
-        });
+        const data = await detectAIArt(detectImage);
+        if (data.result) {
+          setDetectResult({ type: "ai", ...data.result });
+        } else {
+          alert("Could not analyze image. Try another!");
+        }
       }
-    }, 1800);
+    } catch (err) {
+      alert("Connection error. Make sure backend is running!");
+    } finally {
+      setDetecting(false);
+    }
   };
 
   const NAV_ITEMS = [
@@ -563,26 +581,50 @@ const [currentUser, setCurrentUser] = useState(null);
             </div>
 
             {/* Upload area */}
-            <div style={{
-              border: `2px dashed ${T.border}`, borderRadius: 20, padding: "60px 40px",
-              textAlign: "center", marginBottom: 20, background: T.bgCard,
+            <label htmlFor="art-upload" style={{
+              display: "block", border: `2px dashed ${detectImagePreview ? T.accent : T.border}`,
+              borderRadius: 20, padding: detectImagePreview ? "20px" : "60px 40px",
+              textAlign: "center", marginBottom: 20, background: detectImagePreview ? T.accentSoft : T.bgCard,
               cursor: "pointer", transition: "all 0.3s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.background = T.accentSoft; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = T.bgCard; }}
-            >
-              <div style={{ fontSize: 56, marginBottom: 16 }}>📁</div>
-              <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Drop your artwork here</div>
-              <div style={{ color: T.textMuted, fontSize: 14 }}>or click to browse • PNG, JPG, WEBP supported</div>
-            </div>
-
-            <button onClick={handleDetect} style={{
-              width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
-              background: `linear-gradient(135deg, ${T.warm2}, ${T.accent})`,
-              color: "#fff", fontSize: 16, fontWeight: 600, cursor: "pointer",
-              fontFamily: fonts[fontChoice], boxShadow: T.shadowGlow, marginBottom: 24,
             }}>
-              {detectTab === "style" ? "🎨 Analyze Style & Mood" : "🤖 Detect AI Art"}
+              {detectImagePreview ? (
+                <img src={detectImagePreview} alt="Preview" style={{
+                  maxHeight: 280, maxWidth: "100%", borderRadius: 12,
+                  objectFit: "contain",
+                }} />
+              ) : (
+                <>
+                  <div style={{ fontSize: 56, marginBottom: 16 }}>📁</div>
+                  <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Drop your artwork here</div>
+                  <div style={{ color: T.textMuted, fontSize: 14 }}>or click to browse • PNG, JPG, WEBP supported</div>
+                </>
+              )}
+            </label>
+            <input
+              id="art-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: "none" }}
+            />
+
+            {detectImagePreview && (
+              <button onClick={() => { setDetectImage(null); setDetectImagePreview(null); setDetectResult(null); }} style={{
+                display: "block", margin: "0 auto 16px", padding: "6px 16px", borderRadius: 8,
+                border: `1px solid ${T.border}`, background: T.surface, color: T.textMuted,
+                cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice],
+              }}>✕ Remove image</button>
+            )}
+
+            <button onClick={handleDetect} disabled={detecting || !detectImage} style={{
+              width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
+              background: detecting || !detectImage ? T.surface : `linear-gradient(135deg, ${T.warm2}, ${T.accent})`,
+              color: detecting || !detectImage ? T.textMuted : "#fff",
+              fontSize: 16, fontWeight: 600, cursor: detecting || !detectImage ? "not-allowed" : "pointer",
+              fontFamily: fonts[fontChoice], boxShadow: detecting || !detectImage ? "none" : T.shadowGlow,
+              marginBottom: 24, transition: "all 0.3s",
+            }}>
+              {detecting ? "⏳ Analyzing artwork..." : detectTab === "style" ? "🎨 Analyze Style & Mood" : "🤖 Detect AI Art"}
             </button>
 
             {/* Result */}
@@ -613,7 +655,7 @@ const [currentUser, setCurrentUser] = useState(null);
                       background: T.accentSoft, borderRadius: 12, padding: "14px 18px",
                       border: `1px solid ${T.accentGlow}`, color: T.text, fontSize: 14, lineHeight: 1.7,
                     }}>
-                      💡 This artwork exhibits characteristics consistent with <strong>{detectResult.style}</strong> — note the distinctive brushwork and emotional composition that conveys a <strong>{detectResult.mood.toLowerCase()}</strong> atmosphere.
+                      💡 {detectResult.description || `This artwork exhibits characteristics consistent with ${detectResult.style} — note the distinctive brushwork and emotional composition that conveys a ${detectResult.mood?.toLowerCase()} atmosphere.`}
                     </div>
                   </>
                 ) : (
@@ -631,7 +673,7 @@ const [currentUser, setCurrentUser] = useState(null);
                       </div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {detectResult.signals.map((s, i) => (
+                      {detectResult.signals?.map((s, i) => (
                         <div key={i} style={{
                           display: "flex", alignItems: "center", gap: 10,
                           background: T.surface, borderRadius: 10, padding: "10px 16px",

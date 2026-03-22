@@ -58,3 +58,27 @@ export const sendChatMessage = async (message, history) => {
   });
   return response.json();
 };
+// ── ART STYLE & AI DETECTION ──────────────────────────────
+export const detectArtStyle = async (imageFile) => {
+  const token = localStorage.getItem('artverse_token');
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  const response = await fetch('http://localhost:5000/api/detect/style', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
+  });
+  return response.json();
+};
+
+export const detectAIArt = async (imageFile) => {
+  const token = localStorage.getItem('artverse_token');
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  const response = await fetch('http://localhost:5000/api/detect/ai', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
+  });
+  return response.json();
+};
