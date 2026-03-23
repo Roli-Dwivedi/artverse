@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerUser, loginUser, saveToken } from "./api";
+import { registerUser, loginUser, saveToken, saveUser } from "./api";
 
 const THEMES = {
   warm: {
@@ -76,9 +76,10 @@ export default function Auth({ theme = "warm", onLoginSuccess }) {
         if (data.error) {
           setError(data.error);
         } else {
-          saveToken(data.token);
-          setSuccess("Account created! Welcome to ArtVerse 🎨");
-          setTimeout(() => onLoginSuccess(data.user), 1000);
+         saveToken(data.token);
+saveUser(data.user);
+setSuccess("Account created! Welcome to ArtVerse 🎨");
+setTimeout(() => onLoginSuccess(data.user), 1000);
         }
 
       } else {
@@ -93,8 +94,9 @@ export default function Auth({ theme = "warm", onLoginSuccess }) {
           setError(data.error);
         } else {
           saveToken(data.token);
-          setSuccess("Welcome back! 🎨");
-          setTimeout(() => onLoginSuccess(data.user), 800);
+saveUser(data.user);
+setSuccess("Welcome back! 🎨");
+setTimeout(() => onLoginSuccess(data.user), 800);
         }
       }
     } catch (err) {

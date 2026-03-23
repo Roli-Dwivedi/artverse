@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import { isLoggedIn, removeToken, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile } from "./api";
+import { isLoggedIn, removeToken,getArtworks, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile, removeUser } from "./api";
 const THEMES = {
   warm: {
     name: "Warm Earthy",
@@ -83,9 +83,18 @@ const ART_MOODS = ["Melancholic", "Joyful", "Ethereal", "Tense", "Peaceful", "My
 export default function ArtVerse() {
   const [theme, setTheme] = useState("warm");
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
-const [currentUser, setCurrentUser] = useState(null);
+const [currentUser, setCurrentUser] = useState(() => {
+  try {
+    const token = localStorage.getItem("artverse_token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.user || null;
+  } catch { return null; }
+});
   const [activeTab, setActiveTab] = useState("gallery");
   const [searchQuery, setSearchQuery] = useState("");
+  const [galleryArtworks, setGalleryArtworks] = useState(SAMPLE_ARTWORKS);
+const [galleryLoading, setGalleryLoading] = useState(false);
   const [activeStyle, setActiveStyle] = useState("All");
   const [likedArtworks, setLikedArtworks] = useState(new Set());
   const [chatMessages, setChatMessages] = useState([
@@ -122,6 +131,15 @@ const [showEditProfile, setShowEditProfile] = useState(false);
   useEffect(() => {
   chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
 }, [chatMessages]);
+useEffect(() => {
+  if (activeTab === "gallery") {
+    getArtworks().then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        setGalleryArtworks(data);
+      }
+    }).catch(() => {}); // keeps sample data on error
+  }
+}, [activeTab]);
 
 useEffect(() => {
   if (activeTab === "profile") {
@@ -131,7 +149,7 @@ useEffect(() => {
   }
 }, [activeTab]);
 
-  const filteredArtworks = SAMPLE_ARTWORKS.filter(a => {
+  const filteredArtworks = galleryArtworks.filter(a => {
     const matchSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.style.toLowerCase().includes(searchQuery.toLowerCase());
@@ -340,6 +358,15 @@ useEffect(() => {
             fontFamily: fonts[fontChoice], transition: "all 0.2s",
           }}>
             {theme === "warm" ? "☀️ Light" : "🌙 Dark"}
+            <button onClick={() => { removeToken(); setLoggedIn(false); setCurrentUser(null); }} style={{
+  padding: "6px 14px", borderRadius: 8,
+  border: `1px solid rgba(239,68,68,0.4)`,
+  background: "rgba(239,68,68,0.1)", color: "#ef4444",
+  cursor: "pointer", fontSize: 13,
+  fontFamily: fonts[fontChoice], transition: "all 0.2s",
+}}>
+  🚪 Logout
+</button>
           </button>
         </div>
       </nav>
@@ -619,6 +646,23 @@ useEffect(() => {
                     border: `1px solid ${T.border}`, background: T.surface, color: T.text,
                     cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
                   }}>🔄 Regenerate</button>
+                  <button onClick={async () => {
+  const result = await saveArtwork({
+    image_url: generatedArt.image,
+    title: generatePrompt.slice(0, 60) || "AI Generated",
+    prompt: generatePrompt,
+    style: generatedArt.style,
+    source_tab: "generate"
+  });
+  if (result.id) alert("Saved to profile! 🎨");
+  else alert("Already saved!");
+}} style={{
+  padding: "10px 16px", borderRadius: 10,
+  border: `1px solid ${T.accent}`,
+  background: T.accentSoft, color: T.accent,
+  cursor: "pointer", fontSize: 14,
+  fontFamily: fonts[fontChoice],
+}}>🔖 Save to Profile</button>
                 </div>
               </div>
             )}

@@ -41,6 +41,12 @@ export const getCommunities = async () => {
 
 // ── TOKEN HELPERS ─────────────────────
 export const saveToken = (token) => localStorage.setItem("artverse_token", token);
+export const saveUser = (user) => localStorage.setItem("artverse_user", JSON.stringify(user));
+export const getUser = () => {
+  try { return JSON.parse(localStorage.getItem("artverse_user")); }
+  catch { return null; }
+};
+export const removeUser = () => localStorage.removeItem("artverse_user");
 export const getToken = () => localStorage.getItem("artverse_token");
 export const removeToken = () => localStorage.removeItem("artverse_token");
 export const isLoggedIn = () => !!getToken();
