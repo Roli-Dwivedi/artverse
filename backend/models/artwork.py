@@ -7,6 +7,7 @@ class Artwork(db.Model):
     description = db.Column(db.Text, default='')
     image_path = db.Column(db.String(500), nullable=False)
     style = db.Column(db.String(100), default='Unknown')
+    artist_name = db.Column(db.String(200), default='Unknown')
     is_ai_generated = db.Column(db.Boolean, default=False)
     likes = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -18,7 +19,9 @@ class Artwork(db.Model):
             'title': self.title,
             'description': self.description,
             'image_path': self.image_path,
+            'image_url': self.image_path,
             'style': self.style,
+            'artist_name': self.artist_name,
             'is_ai_generated': self.is_ai_generated,
             'likes': self.likes,
             'artist': self.artist.username,

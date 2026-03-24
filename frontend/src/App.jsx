@@ -294,6 +294,65 @@ useEffect(() => {
     .masonry { columns: 3; column-gap: 16px; }
     @media(max-width:900px) { .masonry { columns: 2; } }
     @media(max-width:600px) { .masonry { columns: 1; } }
+
+    /* ── MOBILE RESPONSIVE ── */
+    @media(max-width:768px) {
+
+      /* Nav — hide tab labels, show only icons */
+      nav { padding: 0 10px !important; gap: 4px !important; }
+      /* Nav — show only icons on mobile */
+.nav-label { display: none; }
+nav button { padding: 6px 8px !important; }
+
+      /* Hide customize button on mobile */
+      nav .customize-btn { display: none; }
+
+      /* Logo text smaller */
+      nav span { font-size: 16px !important; }
+
+      /* Theme + Logout buttons smaller */
+      nav .right-controls button {
+        padding: 5px 8px !important;
+        font-size: 12px !important;
+      }
+
+      /* Hero section */
+      .hero h1 { font-size: 32px !important; }
+      .hero p { font-size: 15px !important; }
+
+      /* General page padding */
+      main > div { padding: 16px 12px !important; }
+
+      /* Profile card stack vertically */
+      .profile-card { flex-direction: column !important; }
+
+      /* Chat height smaller on mobile */
+      .chat-box { height: 380px !important; }
+
+      /* Detect upload area padding */
+      .detect-upload { padding: 30px 20px !important; }
+
+      /* Masters grid single column */
+      .masters-grid { grid-template-columns: 1fr !important; }
+
+      /* AI Studio textarea */
+      textarea { font-size: 14px !important; }
+
+      /* Buttons full width on mobile */
+      .mobile-full { width: 100% !important; }
+
+      /* Style tag pills wrap */
+      .style-tags { gap: 6px !important; }
+      .style-tags button { font-size: 12px !important; padding: 5px 10px !important; }
+    }
+
+    @media(max-width:480px) {
+      /* Extra small phones */
+      nav button { padding: 4px 6px !important; }
+      .masonry { columns: 1; }
+      main > div { padding: 12px 8px !important; }
+      h2 { font-size: 28px !important; }
+    }
   `;
 
  if (!loggedIn) {
@@ -330,20 +389,26 @@ useEffect(() => {
         </div>
 
         {/* Nav tabs - desktop */}
-        <div style={{ display: "flex", gap: 4, flex: 1 }}>
-          {NAV_ITEMS.map(item => (
-            <button key={item.id} onClick={() => setActiveTab(item.id)} style={{
-              padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer",
-              fontFamily: fonts[fontChoice], fontSize: 14,
-              background: activeTab === item.id ? T.accentSoft : "transparent",
-              color: activeTab === item.id ? T.accent : T.textMuted,
-              borderBottom: activeTab === item.id ? `2px solid ${T.accent}` : "2px solid transparent",
-              transition: "all 0.2s",
-            }}>
-              <span style={{ marginRight: 6 }}>{item.icon}</span>{item.label}
-            </button>
-          ))}
-        </div>
+        {/* Nav tabs */}
+<div style={{ 
+  display: "flex", gap: 2, flex: 1, 
+  overflowX: "auto", overflowY: "hidden",
+  scrollbarWidth: "none", msOverflowStyle: "none",
+}}>
+  {NAV_ITEMS.map(item => (
+    <button key={item.id} onClick={() => setActiveTab(item.id)} style={{
+      padding: "6px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+      fontFamily: fonts[fontChoice], fontSize: 13,
+      background: activeTab === item.id ? T.accentSoft : "transparent",
+      color: activeTab === item.id ? T.accent : T.textMuted,
+      borderBottom: activeTab === item.id ? `2px solid ${T.accent}` : "2px solid transparent",
+      transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0,
+    }}>
+      <span style={{ marginRight: 4 }}>{item.icon}</span>
+      <span className="nav-label">{item.label}</span>
+    </button>
+  ))}
+</div>
 
         {/* Right controls */}
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -358,7 +423,8 @@ useEffect(() => {
             fontFamily: fonts[fontChoice], transition: "all 0.2s",
           }}>
             {theme === "warm" ? "☀️ Light" : "🌙 Dark"}
-            <button onClick={() => { removeToken(); setLoggedIn(false); setCurrentUser(null); }} style={{
+          </button>
+          <button onClick={() => { removeToken(); setLoggedIn(false); setCurrentUser(null); }} style={{
   padding: "6px 14px", borderRadius: 8,
   border: `1px solid rgba(239,68,68,0.4)`,
   background: "rgba(239,68,68,0.1)", color: "#ef4444",
@@ -367,7 +433,6 @@ useEffect(() => {
 }}>
   🚪 Logout
 </button>
-          </button>
         </div>
       </nav>
 
@@ -482,10 +547,17 @@ useEffect(() => {
                 >
                   {/* Art preview */}
                   <div style={{
-                    height: art.h, background: `linear-gradient(135deg, ${art.color}, ${art.color}88)`,
-                    position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <span style={{ fontSize: 48, opacity: 0.6 }}>🎨</span>
+  height: art.h, background: `linear-gradient(135deg, ${art.color || "#4a3420"}, ${(art.color || "#4a3420") + "88"})`,
+  position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
+  overflow: "hidden",
+}}>
+  {art.image_url ? (
+    <img src={art.image_url} alt={art.title} style={{
+      width: "100%", height: "100%", objectFit: "cover", display: "block",
+    }} />
+  ) : (
+    <span style={{ fontSize: 48, opacity: 0.6 }}>🎭</span>
+  )}
                     {art.ai && (
                       <div style={{
                         position: "absolute", top: 12, right: 12,
@@ -630,7 +702,7 @@ useEffect(() => {
                 <div style={{ color: T.textMuted, fontSize: 14, fontStyle: "italic", marginBottom: 12 }}>
                   "{generatePrompt}" • {generatedArt.style}
                 </div>
-                <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", gap: 10 , flexWrap: "wrap"}}>
                   <button onClick={() => {
                     const link = document.createElement('a');
                     link.href = generatedArt.image;

@@ -27,6 +27,9 @@ def create_app():
     from routes.detect import detect_bp
     from routes.generate import generate_bp
     from routes.profile import profile_bp 
+    from flask_migrate import Migrate
+    migrate = Migrate(app, db)
+
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(artworks_bp, url_prefix='/api/artworks')
