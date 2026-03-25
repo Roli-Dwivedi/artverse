@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import { isLoggedIn, removeToken,getArtworks, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile, removeUser } from "./api";
+import { isLoggedIn, uploadArtwork, removeToken,getArtworks, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile, removeUser } from "./api";
 const THEMES = {
   warm: {
     name: "Warm Earthy",
@@ -94,7 +94,13 @@ const [currentUser, setCurrentUser] = useState(() => {
   const [activeTab, setActiveTab] = useState("gallery");
   const [searchQuery, setSearchQuery] = useState("");
   const [galleryArtworks, setGalleryArtworks] = useState(SAMPLE_ARTWORKS);
-const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadPreview, setUploadPreview] = useState(null);
+  const [uploadForm, setUploadForm] = useState({ title: "", artist_name: "", style: "Impressionism", description: "" });
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [activeStyle, setActiveStyle] = useState("All");
   const [likedArtworks, setLikedArtworks] = useState(new Set());
   const [chatMessages, setChatMessages] = useState([
@@ -231,6 +237,36 @@ useEffect(() => {
     reader.onload = (ev) => setDetectImagePreview(ev.target.result);
     reader.readAsDataURL(file);
   };
+
+  const handleUpload = async () => {
+  if (!uploadFile) { setUploadError("Please select an image!"); return; }
+  if (!uploadForm.title.trim()) { setUploadError("Please enter a title!"); return; }
+  setUploading(true);
+  setUploadError("");
+  try {
+    const formData = new FormData();
+    formData.append("image", uploadFile);
+    formData.append("title", uploadForm.title);
+    formData.append("artist_name", uploadForm.artist_name);
+    formData.append("style", uploadForm.style);
+    formData.append("description", uploadForm.description);
+    const result = await uploadArtwork(formData);
+    if (result.artwork) {
+      setGalleryArtworks(prev => [result.artwork, ...prev]);
+      setShowUpload(false);
+      setUploadFile(null);
+      setUploadPreview(null);
+      setUploadForm({ title: "", artist_name: "", style: "Impressionism", description: "" });
+      alert("Artwork uploaded successfully! 🎨");
+    } else {
+      setUploadError(result.error || "Upload failed. Try again!");
+    }
+  } catch (err) {
+    setUploadError("Connection error. Make sure backend is running!");
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handleDetect = async () => {
     if (!detectImage) {
@@ -435,7 +471,139 @@ nav button { padding: 6px 8px !important; }
 </button>
         </div>
       </nav>
+      {/* UPLOAD MODAL */}
+{showUpload && (
+  <div style={{
+    position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: 1000, padding: 20,
+  }} onClick={e => e.target === e.currentTarget && setShowUpload(false)}>
+    <div style={{
+      background: T.bgCard, borderRadius: 24, padding: 32,
+      width: "100%", maxWidth: 500, border: `1px solid ${T.border}`,
+      boxShadow: T.shadowGlow, maxHeight: "90vh", overflowY: "auto",
+    }}>
+      <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 700, marginBottom: 24 }}>
+        📤 Upload Artwork
+      </h3>
 
+      {/* Image picker */}
+      <label htmlFor="artwork-upload" style={{
+        display: "block", border: `2px dashed ${uploadPreview ? T.accent : T.border}`,
+        borderRadius: 16, padding: uploadPreview ? 12 : "40px 20px",
+        textAlign: "center", marginBottom: 20, cursor: "pointer",
+        background: uploadPreview ? T.accentSoft : T.surface, transition: "all 0.3s",
+      }}>
+        {uploadPreview ? (
+          <img src={uploadPreview} alt="Preview" style={{
+            maxHeight: 200, maxWidth: "100%", borderRadius: 10, objectFit: "contain",
+          }} />
+        ) : (
+          <>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🖼️</div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>Click to select image</div>
+            <div style={{ fontSize: 13, color: T.textMuted }}>PNG, JPG, WEBP supported</div>
+          </>
+        )}
+      </label>
+      <input id="artwork-upload" type="file" accept="image/*" style={{ display: "none" }}
+        onChange={e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          setUploadFile(file);
+          const reader = new FileReader();
+          reader.onload = ev => setUploadPreview(ev.target.result);
+          reader.readAsDataURL(file);
+        }}
+      />
+
+      {/* Form fields */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div>
+          <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6, fontWeight: 600 }}>TITLE *</label>
+          <input value={uploadForm.title}
+            onChange={e => setUploadForm(p => ({ ...p, title: e.target.value }))}
+            placeholder="e.g. Sunset Over the Mountains"
+            style={{
+              width: "100%", padding: "11px 14px", borderRadius: 10,
+              border: `1px solid ${T.border}`, background: T.inputBg,
+              color: T.text, fontSize: 14, fontFamily: fonts[fontChoice], outline: "none",
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6, fontWeight: 600 }}>ARTIST NAME</label>
+          <input value={uploadForm.artist_name}
+            onChange={e => setUploadForm(p => ({ ...p, artist_name: e.target.value }))}
+            placeholder="e.g. Your name"
+            style={{
+              width: "100%", padding: "11px 14px", borderRadius: 10,
+              border: `1px solid ${T.border}`, background: T.inputBg,
+              color: T.text, fontSize: 14, fontFamily: fonts[fontChoice], outline: "none",
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6, fontWeight: 600 }}>STYLE</label>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {["Impressionism", "Oil Painting", "Watercolor", "Digital Art", "Sketch", "Abstract", "Realism", "Other"].map(s => (
+              <button key={s} onClick={() => setUploadForm(p => ({ ...p, style: s }))} style={{
+                padding: "6px 12px", borderRadius: 20, cursor: "pointer", fontSize: 13,
+                border: `1px solid ${uploadForm.style === s ? T.accent : T.border}`,
+                background: uploadForm.style === s ? T.accentSoft : T.surface,
+                color: uploadForm.style === s ? T.accent : T.textMuted,
+                fontFamily: fonts[fontChoice],
+              }}>{s}</button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6, fontWeight: 600 }}>DESCRIPTION</label>
+          <textarea value={uploadForm.description}
+            onChange={e => setUploadForm(p => ({ ...p, description: e.target.value }))}
+            placeholder="Tell us about this artwork..."
+            rows={3}
+            style={{
+              width: "100%", padding: "11px 14px", borderRadius: 10,
+              border: `1px solid ${T.border}`, background: T.inputBg,
+              color: T.text, fontSize: 14, fontFamily: fonts[fontChoice],
+              outline: "none", resize: "vertical",
+            }}
+          />
+        </div>
+      </div>
+
+      {uploadError && (
+        <div style={{
+          marginTop: 12, padding: "10px 14px", borderRadius: 10,
+          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+          color: "#ef4444", fontSize: 14,
+        }}>⚠️ {uploadError}</div>
+      )}
+
+      {/* Buttons */}
+      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        <button onClick={() => { setShowUpload(false); setUploadFile(null); setUploadPreview(null); setUploadError(""); }} style={{
+          flex: 1, padding: "11px", borderRadius: 10,
+          border: `1px solid ${T.border}`, background: T.surface,
+          color: T.text, cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
+        }}>Cancel</button>
+        <button onClick={handleUpload} disabled={uploading} style={{
+          flex: 2, padding: "11px", borderRadius: 10, border: "none",
+          background: uploading ? T.surface : `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+          color: uploading ? T.textMuted : "#fff",
+          cursor: uploading ? "not-allowed" : "pointer",
+          fontSize: 14, fontWeight: 600, fontFamily: fonts[fontChoice],
+        }}>
+          {uploading ? "⏳ Uploading..." : "📤 Upload Artwork"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       {/* CUSTOMIZER PANEL */}
       {showCustomizer && (
         <div style={{
@@ -506,30 +674,41 @@ nav button { padding: 6px 8px !important; }
             </div>
 
             {/* Search + Filters */}
-            <div style={{ marginBottom: 24 }}>
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="🔍  Search artworks, artists, styles..."
-                style={{
-                  width: "100%", padding: "14px 20px", borderRadius: 12,
-                  border: `1px solid ${T.border}`, background: T.inputBg,
-                  color: T.text, fontSize: 15, fontFamily: fonts[fontChoice],
-                  outline: "none", marginBottom: 16,
-                  boxShadow: "inset 0 2px 8px rgba(0,0,0,0.2)",
-                }}
-              />
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {STYLE_TAGS.map(tag => (
-                  <button key={tag} onClick={() => setActiveStyle(tag)} style={{
-                    padding: "6px 16px", borderRadius: 20, border: `1px solid ${activeStyle === tag ? T.accent : T.border}`,
-                    background: activeStyle === tag ? T.accentSoft : T.surface,
-                    color: activeStyle === tag ? T.accent : T.textMuted,
-                    cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice], transition: "all 0.2s",
-                  }}>{tag}</button>
-                ))}
-              </div>
-            </div>
+            {/* Search + Filters */}
+<div style={{ marginBottom: 24 }}>
+  {/* Upload button */}
+  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+    <button onClick={() => setShowUpload(true)} style={{
+      padding: "10px 20px", borderRadius: 12, border: "none",
+      background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+      color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600,
+      fontFamily: fonts[fontChoice], boxShadow: T.shadowGlow,
+    }}>📤 Upload Artwork</button>
+  </div>
+
+  <input
+    value={searchQuery}
+    onChange={e => setSearchQuery(e.target.value)}
+    placeholder="🔍  Search artworks, artists, styles..."
+    style={{
+      width: "100%", padding: "14px 20px", borderRadius: 12,
+      border: `1px solid ${T.border}`, background: T.inputBg,
+      color: T.text, fontSize: 15, fontFamily: fonts[fontChoice],
+      outline: "none", marginBottom: 16,
+      boxShadow: "inset 0 2px 8px rgba(0,0,0,0.2)",
+    }}
+  />
+  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+    {STYLE_TAGS.map(tag => (
+      <button key={tag} onClick={() => setActiveStyle(tag)} style={{
+        padding: "6px 16px", borderRadius: 20, border: `1px solid ${activeStyle === tag ? T.accent : T.border}`,
+        background: activeStyle === tag ? T.accentSoft : T.surface,
+        color: activeStyle === tag ? T.accent : T.textMuted,
+        cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice], transition: "all 0.2s",
+      }}>{tag}</button>
+    ))}
+  </div>
+</div>
 
             {/* Masonry Grid */}
             <div className="masonry">

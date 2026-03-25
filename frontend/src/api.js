@@ -155,3 +155,14 @@ export const deleteSavedArtwork = async (id) => {
   });
   return res.json();
 };
+
+// ── UPLOAD ARTWORK ──
+export const uploadArtwork = async (formData) => {
+  const token = getToken();
+  const res = await fetch(`http://localhost:5000/api/artworks/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData
+  });
+  return res.json();
+};

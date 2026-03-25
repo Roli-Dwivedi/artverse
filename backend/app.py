@@ -4,6 +4,10 @@ from flask import Flask
 from flask_cors import CORS
 from extensions import db, jwt
 import os
+from models.community import Community, CommunityPost
+from models.user import User
+from models.artwork import Artwork
+
 
 
 def create_app():
@@ -30,6 +34,7 @@ def create_app():
     from flask_migrate import Migrate
     migrate = Migrate(app, db)
 
+    
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(artworks_bp, url_prefix='/api/artworks')
@@ -43,9 +48,16 @@ def create_app():
         db.create_all()
         print("✅ Database tables created!")
 
+
+    @app.route('/uploads/<filename>')
+    def uploaded_file(filename):
+        upload_folder = os.path.join(app.root_path, 'uploads')
+        return send_from_directory(upload_folder, filename)
+
     return app
+app = create_app()
 
 if __name__ == '__main__':
-    app = create_app()
+    # This only runs when you do `python app.py`, not when `from app import app`
     print("🎨 ArtVerse backend running on http://localhost:5000")
     app.run(debug=True, port=5000)

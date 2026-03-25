@@ -6,12 +6,80 @@ import os
 import uuid
 
 artworks_bp = Blueprint('artworks', __name__)
+@jwt_required()
+def toggle_like(artwork_id):
+    user_id = get_jwt_identity()
 
-# ── SERVE UPLOADED FILES ──
-@artworks_bp.route('/uploads/<filename>')
-def uploaded_file(filename):
-    upload_folder = os.path.join(current_app.root_path, 'uploads')
-    return send_from_directory(upload_folder, filename)
+    existing = db.session.execute(
+        text("SELECT id FROM likes WHERE user_id=:uid AND artwork_id=:aid"),
+        {"uid": user_id, "aid": artwork_id}
+    ).fetchone()
+
+    artwork = Artwork.query.get_or_404(artwork_id)
+
+    if existing:
+        db.session.execute(
+            text("DELETE FROM likes WHERE user_id=:uid AND artwork_id=:aid"),
+            {"uid": user_id, "aid": artwork_id}
+        )
+        artwork.likes = max(0, artwork.likes - 1)
+        liked = False
+    else:
+        db.session.execute(
+            text("INSERT INTO likes (user_id, artwork_id) VALUES (:uid, :aid)"),
+            {"uid": user_id, "aid": artwork_id}
+        )
+        artwork.likes += 1
+        liked = True
+
+    db.session.commit()
+    return jsonify({"liked": liked, "likes": artwork.likes})
+
+
+@artworks_bp.route('/<int:artwork_id>/like-status', methods=['GET'])
+@jwt_required()
+def like_status(artwork_id):
+    user_id = get_jwt_identity()
+    existing = db.session.execute(
+        text("SELECT id FROM likes WHERE user_id=:uid AND artwork_id=:aid"),
+        {"uid": user_id, "aid": artwork_id}
+    ).fetchone()
+    return jsonify({"liked": existing is not None})
+
+
+from models.artwork import Artwork
+from sqlalchemy import or_
+
+
+@artworks_bp.route('/search', methods=['GET'])
+def search_artworks():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+
+    like = f"%{query}%"
+    results = Artwork.query.filter(
+        or_(
+            Artwork.title.ilike(like),
+            Artwork.style.ilike(like),
+            Artwork.artist_name.ilike(like),
+            Artwork.description.ilike(like)
+        )
+    ).order_by(Artwork.created_at.desc()).limit(20).all()
+
+    return jsonify([{
+        "id": a.id,
+        "title": a.title,
+        "description": a.description,
+        "image_path": a.image_path,
+        "style": a.style,
+        "artist_name": a.artist_name,
+        "is_ai_generated": a.is_ai_generated,
+        "likes": a.likes,
+        "user_id": a.user_id,
+        "created_at": str(a.created_at)
+    } for a in results])
+
 
 # ── GET ALL ARTWORKS ──
 @artworks_bp.route('/', methods=['GET'])
