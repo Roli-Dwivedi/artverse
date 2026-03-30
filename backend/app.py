@@ -13,8 +13,10 @@ from models.artwork import Artwork
 def create_app():
     app = Flask(__name__)
     
-    app.config['SECRET_KEY'] = 'artverse-secret-key-2026-very-secure-long-key'
-    app.config['JWT_SECRET_KEY'] = 'artverse-jwt-secret-2026-very-secure-long-key'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
+    GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+    HF_API_KEY = os.environ.get('HF_API_KEY')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///artverse.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'uploads'

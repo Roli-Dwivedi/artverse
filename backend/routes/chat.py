@@ -24,11 +24,8 @@ Never discuss topics unrelated to art and creativity."""
 @chat_bp.route('/api/chat', methods=['POST'])
 def chat():
     try:
-        print("=== CHAT REQUEST RECEIVED ===")
-        print("Raw data:", request.data)
-        print("Content-Type:", request.content_type)
+        
         data = request.get_json(force=True)
-        print("Parsed JSON:", data)
         user_message = data.get('message', '').strip()
         conversation_history = data.get('history', [])
 
@@ -62,5 +59,4 @@ def chat():
         })
 
     except Exception as e:
-        print("=== ERROR ===", str(e))
         return jsonify({'error': str(e)}), 500
