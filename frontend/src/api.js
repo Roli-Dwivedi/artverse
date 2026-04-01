@@ -1,5 +1,5 @@
 // Base URL of our Flask backend
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "${import.meta.env.VITE_API_URL}/api";
 
 // ── AUTH ──────────────────────────────
 export const registerUser = async (username, email, password) => {
@@ -54,7 +54,7 @@ export const isLoggedIn = () => !!getToken();
 // ── CHAT BOX ──────────────────────────────
 export const sendChatMessage = async (message, history) => {
   const token = localStorage.getItem('artverse_token');
-  const response = await fetch('http://localhost:5000/api/chat', {
+  const response = await fetch('${import.meta.env.VITE_API_URL}/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ export const detectArtStyle = async (imageFile) => {
   const token = localStorage.getItem('artverse_token');
   const formData = new FormData();
   formData.append('image', imageFile);
-  const response = await fetch('http://localhost:5000/api/detect/style', {
+  const response = await fetch('${import.meta.env.VITE_API_URL}/api/detect/style', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}` },
     body: formData
@@ -81,7 +81,7 @@ export const detectAIArt = async (imageFile) => {
   const token = localStorage.getItem('artverse_token');
   const formData = new FormData();
   formData.append('image', imageFile);
-  const response = await fetch('http://localhost:5000/api/detect/ai', {
+  const response = await fetch('${import.meta.env.VITE_API_URL}/api/detect/ai', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}` },
     body: formData
@@ -92,7 +92,7 @@ export const detectAIArt = async (imageFile) => {
 // ── AI ART GENERATION ──────────────────────────────
 export const generateArt = async (prompt, style) => {
   const token = localStorage.getItem('artverse_token');
-  const response = await fetch('http://localhost:5000/api/generate', {
+  const response = await fetch('${import.meta.env.VITE_API_URL}/api/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export const generateArt = async (prompt, style) => {
 // ── PROFILE ──────────────────────────────
 export const getProfile = async () => {
   const token = getToken();
-  const res = await fetch(`http://localhost:5000/api/profile`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return res.json();
@@ -114,7 +114,7 @@ export const getProfile = async () => {
 
 export const updateProfile = async (data) => {
   const token = getToken();
-  const res = await fetch(`http://localhost:5000/api/profile`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -127,7 +127,7 @@ export const updateProfile = async (data) => {
 
 export const saveArtwork = async (data) => {
   const token = getToken();
-  const res = await fetch(`http://localhost:5000/api/artworks/save`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/artworks/save`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -141,7 +141,7 @@ export const saveArtwork = async (data) => {
 export const getSavedArtworks = async () => {
   const token = getToken();
   console.log("Token being sent:", token); // add this line temporarily
-  const res = await fetch(`http://localhost:5000/api/artworks/saved`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/artworks/saved`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return res.json();
@@ -149,7 +149,7 @@ export const getSavedArtworks = async () => {
 
 export const deleteSavedArtwork = async (id) => {
   const token = getToken();
-  const res = await fetch(`http://localhost:5000/api/artworks/saved/${id}`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/artworks/saved/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` }
   });
@@ -159,7 +159,7 @@ export const deleteSavedArtwork = async (id) => {
 // ── UPLOAD ARTWORK ──
 export const uploadArtwork = async (formData) => {
   const token = getToken();
-  const res = await fetch(`http://localhost:5000/api/artworks/upload`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/artworks/upload`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: formData
