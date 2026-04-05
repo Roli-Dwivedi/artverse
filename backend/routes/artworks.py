@@ -127,7 +127,6 @@ def upload_artwork():
     file.save(os.path.join(upload_folder, filename))
 
     image_path = f"${import.meta.env.VITE_API_URL}/uploads/{filename}"
-
     # Save to database
     artwork = Artwork(
         title       = request.form.get('title', 'Untitled')[:200],
