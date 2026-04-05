@@ -61,5 +61,5 @@ app = create_app()
 
 if __name__ == '__main__':
     # This only runs when you do `python app.py`, not when `from app import app`
-    print("🎨 ArtVerse backend running on http://localhost:5000")
+    print("🎨 ArtVerse backend running on ${import.meta.env.VITE_API_URL}")
     app.run(debug=True, port=5000)

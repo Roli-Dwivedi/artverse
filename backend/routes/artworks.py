@@ -126,7 +126,7 @@ def upload_artwork():
     os.makedirs(upload_folder, exist_ok=True)
     file.save(os.path.join(upload_folder, filename))
 
-    image_path = f"http://localhost:5000/uploads/{filename}"
+    image_path = f"${import.meta.env.VITE_API_URL}/uploads/{filename}"
 
     # Save to database
     artwork = Artwork(
