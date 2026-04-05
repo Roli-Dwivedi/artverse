@@ -1,3 +1,6 @@
+#backend deploy fix
+from fileinput import filename
+
 from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
@@ -126,7 +129,11 @@ def upload_artwork():
     os.makedirs(upload_folder, exist_ok=True)
     file.save(os.path.join(upload_folder, filename))
 
-    image_path = f"${import.meta.env.VITE_API_URL}/uploads/{filename}"
+    import os
+
+# Get the URL from environment variables, or default to localhost if not set
+    base_url = os.environ.get('BASE_URL', 'http://localhost:5000')
+    image_path = f"{base_url}/uploads/{filename}"
     # Save to database
     artwork = Artwork(
         title       = request.form.get('title', 'Untitled')[:200],
