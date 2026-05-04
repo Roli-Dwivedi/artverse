@@ -24,7 +24,7 @@ def create_app():
 
     CORS(app, origins=[
     "http://localhost:5173",
-    "https://artverse-huy6lgmgy-roli-dwivedis-projects.vercel.app"
+    "https://artverse-xi.vercel.app"
 ])
     db.init_app(app)
     jwt.init_app(app)
