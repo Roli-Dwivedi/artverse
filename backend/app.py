@@ -17,7 +17,7 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
     HF_API_KEY = os.environ.get('HF_API_KEY')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///artverse.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///artverse.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'uploads'
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
