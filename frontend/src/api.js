@@ -1,5 +1,5 @@
 // Base URL of our Flask backend
-const BASE_URL = "https://artverse-backend-c6va.onrender.com";
+const BASE_URL = "https://artverse-backend-c6va.onrender.com/api";
 
 // ── AUTH ──────────────────────────────
 export const registerUser = async (username, email, password) => {
