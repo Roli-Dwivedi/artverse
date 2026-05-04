@@ -1,13 +1,17 @@
 #backend deploy fix
-from fileinput import filename
-
-from flask import Blueprint, request, jsonify, current_app, send_from_directory
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
 from models.artwork import Artwork
 import os
-import uuid
+import cloudinary
+import cloudinary.uploader
 
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET')
+)
 artworks_bp = Blueprint('artworks', __name__)
 @jwt_required()
 def toggle_like(artwork_id):
@@ -117,32 +121,19 @@ def upload_artwork():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
-    # Check file type
-    allowed = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
-    ext = file.filename.rsplit('.', 1)[-1].lower()
-    if ext not in allowed:
-        return jsonify({'error': 'File type not allowed'}), 400
+    # Upload to Cloudinary
+    result = cloudinary.uploader.upload(file)
+    image_url = result['secure_url']
 
-    # Save file with unique name
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    upload_folder = os.path.join(current_app.root_path, 'uploads')
-    os.makedirs(upload_folder, exist_ok=True)
-    file.save(os.path.join(upload_folder, filename))
-
-    import os
-
-# Get the URL from environment variables, or default to localhost if not set
-    base_url = os.environ.get('BASE_URL', 'http://localhost:5000')
-    image_path = f"{base_url}/uploads/{filename}"
     # Save to database
     artwork = Artwork(
-        title       = request.form.get('title', 'Untitled')[:200],
-        artist_name = request.form.get('artist_name', 'Unknown'),
-        style       = request.form.get('style', 'Other'),
-        description = request.form.get('description', ''),
-        image_path  = image_path,
-        user_id     = int(user_id),
-        likes       = 0
+        title=request.form.get('title', 'Untitled')[:200],
+        artist_name=request.form.get('artist_name', 'Unknown'),
+        style=request.form.get('style', 'Other'),
+        description=request.form.get('description', ''),
+        image_path=image_url,
+        user_id=int(user_id),
+        likes=0
     )
     db.session.add(artwork)
     db.session.commit()
