@@ -22,7 +22,10 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = 'uploads'
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-    CORS(app)
+    CORS(app, origins=[
+    "http://localhost:5173",
+    "https://artverse-huy6lgmgy-roli-dwivedis-projects.vercel.app"
+])
     db.init_app(app)
     jwt.init_app(app)
 
