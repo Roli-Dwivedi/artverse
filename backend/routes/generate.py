@@ -1,12 +1,13 @@
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify
 import requests
 import os
-import io
+import base64
 
 generate_bp = Blueprint('generate', __name__)
 
 HF_API_KEY = os.getenv("HF_API_KEY")
-MODEL_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-1"
+MODEL_URL = "https://router.huggingface.co/fal-ai/models/stabilityai/stable-diffusion-xl-base-1.0"
+
 @generate_bp.route('/api/generate', methods=['POST'])
 def generate_art():
     try:
@@ -17,14 +18,16 @@ def generate_art():
         if not prompt:
             return jsonify({'error': 'Prompt cannot be empty'}), 400
 
-        # Enhance prompt with style
         enhanced_prompt = f"{prompt}, {style} style, highly detailed, artistic, masterpiece" if style else f"{prompt}, highly detailed, artistic, masterpiece"
 
-        headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+        headers = {
+            "Authorization": f"Bearer {HF_API_KEY}",
+            "Content-Type": "application/json"
+        }
         payload = {
             "inputs": enhanced_prompt,
             "parameters": {
-                "num_inference_steps": 30,
+                "num_inference_steps": 25,
                 "guidance_scale": 7.5,
                 "width": 512,
                 "height": 512,
@@ -44,8 +47,6 @@ def generate_art():
             print("HF Error:", response.text)
             return jsonify({'error': f'Generation failed: {response.text}'}), 500
 
-        # Convert image bytes to base64
-        import base64
         image_base64 = base64.b64encode(response.content).decode('utf-8')
 
         return jsonify({
