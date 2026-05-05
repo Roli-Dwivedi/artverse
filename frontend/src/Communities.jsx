@@ -25,13 +25,14 @@ const THEMES = {
   },
 };
 
+
 const COMMUNITIES = [
-  { id: 1, name: "Watercolor World", desc: "A space for watercolor lovers to share tips, techniques, and paintings.", emoji: "🌊", members: 4821, posts: 342, color: "#1a4a6b", tags: ["Watercolor", "Beginner Friendly"] },
-  { id: 2, name: "Digital Art Lab", desc: "Explore AI tools, digital brushes, and the future of art creation.", emoji: "💻", members: 9203, posts: 891, color: "#3b1f6b", tags: ["Digital", "AI Art"] },
-  { id: 3, name: "Oil & Canvas", desc: "Traditional oil painting techniques from old masters to modern styles.", emoji: "🖼️", members: 3456, posts: 215, color: "#6b2d1a", tags: ["Oil Painting", "Traditional"] },
-  { id: 4, name: "Sketch & Doodle", desc: "Daily sketching challenges, figure drawing, and sketchbook sharing.", emoji: "✏️", members: 6789, posts: 1203, color: "#2d5a27", tags: ["Sketch", "Daily Challenge"] },
-  { id: 5, name: "Street Art Collective", desc: "Urban art, graffiti culture, and mural photography from around the world.", emoji: "🏙️", members: 2341, posts: 445, color: "#5c3a1e", tags: ["Street Art", "Photography"] },
-  { id: 6, name: "Abstract Minds", desc: "Where rules are broken and creativity is limitless. Pure abstract art.", emoji: "🌀", members: 5102, posts: 678, color: "#1e4a5c", tags: ["Abstract", "Experimental"] },
+  { id: 1, name: "Watercolor World", desc: "A space for watercolor lovers to share tips, techniques, and paintings.", emoji: "🌊", members: 4821, posts: 342, color: "#1a4a6b", tags: ["Watercolor", "Beginner Friendly"], coverImage: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80" },
+  { id: 2, name: "Digital Art Lab", desc: "Explore AI tools, digital brushes, and the future of art creation.", emoji: "💻", members: 9203, posts: 891, color: "#3b1f6b", tags: ["Digital", "AI Art"], coverImage: "https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=400&q=80" },
+  { id: 3, name: "Oil & Canvas", desc: "Traditional oil painting techniques from old masters to modern styles.", emoji: "🖼️", members: 3456, posts: 215, color: "#6b2d1a", tags: ["Oil Painting", "Traditional"], coverImage: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&q=80" },
+  { id: 4, name: "Sketch & Doodle", desc: "Daily sketching challenges, figure drawing, and sketchbook sharing.", emoji: "✏️", members: 6789, posts: 1203, color: "#2d5a27", tags: ["Sketch", "Daily Challenge"], coverImage: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80" },
+  { id: 5, name: "Street Art Collective", desc: "Urban art, graffiti culture, and mural photography from around the world.", emoji: "🏙️", members: 2341, posts: 445, color: "#5c3a1e", tags: ["Street Art", "Photography"], coverImage: "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=400&q=80" },
+  { id: 6, name: "Abstract Minds", desc: "Where rules are broken and creativity is limitless. Pure abstract art.", emoji: "🌀", members: 5102, posts: 678, color: "#1e4a5c", tags: ["Abstract", "Experimental"], coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
 ];
 
 const SAMPLE_POSTS = {
@@ -257,21 +258,37 @@ export default function Communities({ theme = "warm" }) {
                 background: T.gradCard, border: `1px solid ${T.border}`,
                 borderRadius: 20, overflow: "hidden", boxShadow: T.shadow,
               }}>
-                {/* Color banner */}
-                <div style={{
-                  height: 80, background: `linear-gradient(135deg, ${community.color}, ${community.color}66)`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 36, position: "relative",
-                }}>
-                  {community.emoji}
-                  {joinedCommunities.has(community.id) && (
-                    <div style={{
-                      position: "absolute", top: 10, right: 12,
-                      background: `${T.accent}22`, border: `1px solid ${T.accent}`,
-                      color: T.accent, borderRadius: 6, padding: "2px 8px", fontSize: 11,
-                    }}>✓ Joined</div>
-                  )}
-                </div>
+                {/* Cover image banner */}
+<div style={{
+  height: 100, position: "relative", overflow: "hidden",
+}}>
+  <img
+    src={community.coverImage}
+    alt={community.name}
+    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+    onError={e => {
+      e.target.style.display = "none";
+      e.target.parentNode.style.background = `linear-gradient(135deg, ${community.color}, ${community.color}66)`;
+    }}
+  />
+  {/* Dark overlay */}
+  <div style={{
+    position: "absolute", inset: 0,
+    background: "rgba(0,0,0,0.35)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: 36,
+  }}>
+    {community.emoji}
+  </div>
+  {joinedCommunities.has(community.id) && (
+    <div style={{
+      position: "absolute", top: 10, right: 12,
+      background: `${T.accent}22`, border: `1px solid ${T.accent}`,
+      color: T.accent, borderRadius: 6, padding: "2px 8px", fontSize: 11,
+      backdropFilter: "blur(4px)",
+    }}>✓ Joined</div>
+  )}
+</div>
 
                 <div style={{ padding: "16px 20px" }}>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, marginBottom: 6 }}>
