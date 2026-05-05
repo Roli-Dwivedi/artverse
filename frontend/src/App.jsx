@@ -171,6 +171,7 @@ const [editBio, setEditBio] = useState("");
 const [editAvatar, setEditAvatar] = useState("");
 const [showEditProfile, setShowEditProfile] = useState(false);
 const [selectedArtist, setSelectedArtist] = useState(null);
+const [museTab, setMuseTab] = useState("chat");
   const chatEndRef = useRef(null);
   const T = THEMES[theme];
 
@@ -342,14 +343,12 @@ useEffect(() => {
   };
 
   const NAV_ITEMS = [
-    { id: "gallery", label: "Gallery", icon: "🖼️" },
-    { id: "generate", label: "AI Studio", icon: "✨" },
-    { id: "detect", label: "Art Detect", icon: "🔍" },
-    { id: "chat", label: "Muse AI", icon: "🤖" },
-    { id: "communities", label: "Communities", icon: "🏘️" },
-    { id: "history", label: "Masters", icon: "🏛️" },
-    { id: "profile", label: "Profile", icon: "👤" },
-  ];
+  { id: "gallery", label: "Gallery", icon: "🖼️" },
+  { id: "chat", label: "Muse AI", icon: "🤖" },
+  { id: "communities", label: "Communities", icon: "🏘️" },
+  { id: "history", label: "Masters", icon: "🏛️" },
+  { id: "profile", label: "Profile", icon: "👤" },
+];
 
   const fonts = {
     default: "'Georgia', serif",
@@ -833,362 +832,243 @@ nav button { padding: 6px 8px !important; }
           </div>
         )}
 
-{/* ── AI STUDIO TAB ── */}
-        {activeTab === "generate" && (
-          <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
-            <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 8 }}>
-              ✨ AI <span style={{ color: T.accent }}>Art Studio</span>
-            </h2>
-            <p style={{ color: T.textMuted, marginBottom: 32, fontSize: 16 }}>
-              Describe your vision and watch it come to life.
-            </p>
 
+
+    {/* ── AI STUDIO ── */}
+    {museTab === "generate" && (
+      <div>
+        <div style={{
+          background: T.gradCard, border: `1px solid ${T.border}`,
+          borderRadius: 20, padding: 32, marginBottom: 24, boxShadow: T.shadow,
+        }}>
+          <label style={{ display: "block", fontWeight: 600, marginBottom: 10, color: T.textMuted, fontSize: 14 }}>
+            DESCRIBE YOUR ARTWORK
+          </label>
+          <textarea
+            value={generatePrompt}
+            onChange={e => setGeneratePrompt(e.target.value)}
+            placeholder="e.g. A misty forest at dawn with warm golden light filtering through ancient oak trees..."
+            rows={4}
+            style={{
+              width: "100%", padding: "14px 16px", borderRadius: 12,
+              border: `1px solid ${T.border}`, background: T.inputBg,
+              color: T.text, fontSize: 15, fontFamily: fonts[fontChoice],
+              resize: "vertical", outline: "none", lineHeight: 1.6,
+            }}
+          />
+          <div style={{ marginTop: 16, marginBottom: 8, fontSize: 13, color: T.textMuted, fontWeight: 600 }}>
+            SELECT STYLE
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            {["Impressionism", "Oil Painting", "Watercolor", "Digital Art", "Sketch", "Surrealism", "Abstract", "Renaissance"].map(s => (
+              <button key={s} onClick={() => setGenerateStyle(s)} style={{
+                padding: "6px 14px", borderRadius: 20,
+                border: `1px solid ${generateStyle === s ? T.accent : T.border}`,
+                background: generateStyle === s ? T.accentSoft : T.surface,
+                color: generateStyle === s ? T.accent : T.textMuted,
+                cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice], transition: "all 0.2s",
+              }}>{s}</button>
+            ))}
+          </div>
+          <div style={{ marginBottom: 8, fontSize: 13, color: T.textMuted, fontWeight: 600 }}>QUICK PROMPTS</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+            {[
+              "Impressionist forest at sunset",
+              "Abstract ocean waves in neon",
+              "Portrait in Renaissance style",
+              "Surreal dreamscape with floating islands",
+              "Cyberpunk city in watercolor",
+              "Ancient temple in misty mountains",
+            ].map(p => (
+              <button key={p} onClick={() => setGeneratePrompt(p)} style={{
+                padding: "6px 12px", borderRadius: 8, border: `1px solid ${T.border}`,
+                background: T.surface, color: T.textMuted, cursor: "pointer",
+                fontSize: 12, fontFamily: fonts[fontChoice], transition: "all 0.2s",
+              }}>{p}</button>
+            ))}
+          </div>
+          <button onClick={handleGenerate} disabled={generating || !generatePrompt.trim()} style={{
+            width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
+            cursor: generating || !generatePrompt.trim() ? "not-allowed" : "pointer",
+            background: generating || !generatePrompt.trim() ? T.surface : `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+            color: generating || !generatePrompt.trim() ? T.textMuted : "#fff",
+            fontSize: 16, fontWeight: 600, fontFamily: fonts[fontChoice],
+            transition: "all 0.3s", boxShadow: generating ? "none" : T.shadowGlow,
+          }}>
+            {generating ? "⏳ Creating your masterpiece... (may take 30s)" : "✨ Generate Art"}
+          </button>
+          {generateError && (
             <div style={{
-              background: T.gradCard, border: `1px solid ${T.border}`,
-              borderRadius: 20, padding: 32, marginBottom: 24, boxShadow: T.shadow,
-            }}>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: 10, color: T.textMuted, fontSize: 14 }}>
-                DESCRIBE YOUR ARTWORK
-              </label>
-              <textarea
-                value={generatePrompt}
-                onChange={e => setGeneratePrompt(e.target.value)}
-                placeholder="e.g. A misty forest at dawn with warm golden light filtering through ancient oak trees..."
-                rows={4}
-                style={{
-                  width: "100%", padding: "14px 16px", borderRadius: 12,
-                  border: `1px solid ${T.border}`, background: T.inputBg,
-                  color: T.text, fontSize: 15, fontFamily: fonts[fontChoice],
-                  resize: "vertical", outline: "none", lineHeight: 1.6,
-                }}
-              />
-
-              {/* Style selector */}
-              <div style={{ marginTop: 16, marginBottom: 8, fontSize: 13, color: T.textMuted, fontWeight: 600 }}>
-                SELECT STYLE
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-                {["Impressionism", "Oil Painting", "Watercolor", "Digital Art", "Sketch", "Surrealism", "Abstract", "Renaissance"].map(s => (
-                  <button key={s} onClick={() => setGenerateStyle(s)} style={{
-                    padding: "6px 14px", borderRadius: 20,
-                    border: `1px solid ${generateStyle === s ? T.accent : T.border}`,
-                    background: generateStyle === s ? T.accentSoft : T.surface,
-                    color: generateStyle === s ? T.accent : T.textMuted,
-                    cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice], transition: "all 0.2s",
-                  }}>{s}</button>
-                ))}
-              </div>
-
-              {/* Quick prompts */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-                {["Impressionist forest at sunset", "Abstract ocean waves in neon", "Portrait in Renaissance style", "Surreal dreamscape with floating islands"].map(p => (
-                  <button key={p} onClick={() => setGeneratePrompt(p)} style={{
-                    padding: "6px 12px", borderRadius: 8, border: `1px solid ${T.border}`,
-                    background: T.surface, color: T.textMuted, cursor: "pointer",
-                    fontSize: 12, fontFamily: fonts[fontChoice], transition: "all 0.2s",
-                  }}>{p}</button>
-                ))}
-              </div>
-
-              <button onClick={handleGenerate} disabled={generating || !generatePrompt.trim()} style={{
-                width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
-                cursor: generating || !generatePrompt.trim() ? "not-allowed" : "pointer",
-                background: generating || !generatePrompt.trim() ? T.surface : `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
-                color: generating || !generatePrompt.trim() ? T.textMuted : "#fff",
-                fontSize: 16, fontWeight: 600, fontFamily: fonts[fontChoice],
-                transition: "all 0.3s", boxShadow: generating ? "none" : T.shadowGlow,
-              }}>
-                {generating ? "⏳ Creating your masterpiece... (may take 30s)" : "✨ Generate Art"}
-              </button>
-
-              {generateError && (
-                <div style={{
-                  marginTop: 12, padding: "12px 16px", borderRadius: 10,
-                  background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-                  color: "#ef4444", fontSize: 14,
-                }}>⚠️ {generateError}</div>
-              )}
+              marginTop: 12, padding: "12px 16px", borderRadius: 10,
+              background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+              color: "#ef4444", fontSize: 14,
+            }}>⚠️ {generateError}</div>
+          )}
+        </div>
+        {generatedArt && (
+          <div className="fadeIn" style={{
+            background: T.gradCard, border: `1px solid ${T.accent}`,
+            borderRadius: 20, padding: 24, boxShadow: T.shadowGlow,
+          }}>
+            <img src={generatedArt.image} alt={generatedArt.prompt}
+              style={{ width: "100%", borderRadius: 12, marginBottom: 16, display: "block" }} />
+            <div style={{ color: T.textMuted, fontSize: 14, fontStyle: "italic", marginBottom: 12 }}>
+              "{generatePrompt}" • {generatedArt.style}
             </div>
-
-            {/* Generated art preview */}
-            {generatedArt && (
-              <div className="fadeIn" style={{
-                background: T.gradCard, border: `1px solid ${T.accent}`,
-                borderRadius: 20, padding: 24, boxShadow: T.shadowGlow,
-              }}>
-                <img
-                  src={generatedArt.image}
-                  alt={generatedArt.prompt}
-                  style={{ width: "100%", borderRadius: 12, marginBottom: 16, display: "block" }}
-                />
-                <div style={{ color: T.textMuted, fontSize: 14, fontStyle: "italic", marginBottom: 12 }}>
-                  "{generatePrompt}" • {generatedArt.style}
-                </div>
-                <div style={{ display: "flex", gap: 10 , flexWrap: "wrap"}}>
-                  <button onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = generatedArt.image;
-                    link.download = 'artverse-generated.jpg';
-                    link.click();
-                  }} style={{
-                    flex: 1, padding: "10px 16px", borderRadius: 10,
-                    border: `1px solid ${T.accent}`, background: T.accentSoft, color: T.accent,
-                    cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
-                  }}>💾 Download Art</button>
-                  <button onClick={handleGenerate} style={{
-                    padding: "10px 16px", borderRadius: 10,
-                    border: `1px solid ${T.border}`, background: T.surface, color: T.text,
-                    cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
-                  }}>🔄 Regenerate</button>
-                  <button onClick={async () => {
-  const result = await saveArtwork({
-    image_url: generatedArt.image,
-    title: generatePrompt.slice(0, 60) || "AI Generated",
-    prompt: generatePrompt,
-    style: generatedArt.style,
-    source_tab: "generate"
-  });
-  if (result.id) alert("Saved to profile! 🎨");
-  else alert("Already saved!");
-}} style={{
-  padding: "10px 16px", borderRadius: 10,
-  border: `1px solid ${T.accent}`,
-  background: T.accentSoft, color: T.accent,
-  cursor: "pointer", fontSize: 14,
-  fontFamily: fonts[fontChoice],
-}}>🔖 Save to Profile</button>
-                </div>
-              </div>
-            )}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button onClick={() => {
+                const link = document.createElement('a');
+                link.href = generatedArt.image;
+                link.download = 'artverse-generated.jpg';
+                link.click();
+              }} style={{
+                flex: 1, padding: "10px 16px", borderRadius: 10,
+                border: `1px solid ${T.accent}`, background: T.accentSoft, color: T.accent,
+                cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
+              }}>💾 Download Art</button>
+              <button onClick={handleGenerate} style={{
+                padding: "10px 16px", borderRadius: 10,
+                border: `1px solid ${T.border}`, background: T.surface, color: T.text,
+                cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
+              }}>🔄 Regenerate</button>
+              <button onClick={async () => {
+                const result = await saveArtwork({
+                  image_url: generatedArt.image,
+                  title: generatePrompt.slice(0, 60) || "AI Generated",
+                  prompt: generatePrompt,
+                  style: generatedArt.style,
+                  source_tab: "generate"
+                });
+                if (result.id) alert("Saved to profile! 🎨");
+                else alert("Already saved!");
+              }} style={{
+                padding: "10px 16px", borderRadius: 10,
+                border: `1px solid ${T.accent}`, background: T.accentSoft, color: T.accent,
+                cursor: "pointer", fontSize: 14, fontFamily: fonts[fontChoice],
+              }}>🔖 Save to Profile</button>
+            </div>
           </div>
         )}
+      </div>
+    )}
 
-        {/* ── DETECT TAB ── */}
-        {activeTab === "detect" && (
-          <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
-            <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 8 }}>
-              🔍 Art <span style={{ color: T.accent }}>Detector</span>
-            </h2>
-            <p style={{ color: T.textMuted, marginBottom: 24, fontSize: 16 }}>
-              Identify painting styles, moods, and detect AI-generated artwork.
-            </p>
-
-            {/* Mode tabs */}
-            <div style={{ display: "flex", gap: 4, marginBottom: 24, background: T.surface, borderRadius: 12, padding: 4 }}>
-              {[["style", "🖼️ Style & Mood Analysis"], ["ai", "🤖 AI Detection"]].map(([key, label]) => (
-                <button key={key} onClick={() => { setDetectTab(key); setDetectResult(null); }} style={{
-                  flex: 1, padding: "10px 16px", borderRadius: 10, border: "none", cursor: "pointer",
-                  background: detectTab === key ? T.bgCard : "transparent",
-                  color: detectTab === key ? T.accent : T.textMuted,
-                  fontFamily: fonts[fontChoice], fontSize: 14, fontWeight: 600,
-                  boxShadow: detectTab === key ? T.shadow : "none", transition: "all 0.2s",
-                }}>{label}</button>
-              ))}
-            </div>
-
-            {/* Upload area */}
-            <label htmlFor="art-upload" style={{
-              display: "block", border: `2px dashed ${detectImagePreview ? T.accent : T.border}`,
-              borderRadius: 20, padding: detectImagePreview ? "20px" : "60px 40px",
-              textAlign: "center", marginBottom: 20, background: detectImagePreview ? T.accentSoft : T.bgCard,
-              cursor: "pointer", transition: "all 0.3s",
-            }}>
-              {detectImagePreview ? (
-                <img src={detectImagePreview} alt="Preview" style={{
-                  maxHeight: 280, maxWidth: "100%", borderRadius: 12,
-                  objectFit: "contain",
-                }} />
-              ) : (
-                <>
-                  <div style={{ fontSize: 56, marginBottom: 16 }}>📁</div>
-                  <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Drop your artwork here</div>
-                  <div style={{ color: T.textMuted, fontSize: 14 }}>or click to browse • PNG, JPG, WEBP supported</div>
-                </>
-              )}
-            </label>
-            <input
-              id="art-upload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              style={{ display: "none" }}
-            />
-
-            {detectImagePreview && (
-              <button onClick={() => { setDetectImage(null); setDetectImagePreview(null); setDetectResult(null); }} style={{
-                display: "block", margin: "0 auto 16px", padding: "6px 16px", borderRadius: 8,
-                border: `1px solid ${T.border}`, background: T.surface, color: T.textMuted,
-                cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice],
-              }}>✕ Remove image</button>
-            )}
-
-            <button onClick={handleDetect} disabled={detecting || !detectImage} style={{
-              width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
-              background: detecting || !detectImage ? T.surface : `linear-gradient(135deg, ${T.warm2}, ${T.accent})`,
-              color: detecting || !detectImage ? T.textMuted : "#fff",
-              fontSize: 16, fontWeight: 600, cursor: detecting || !detectImage ? "not-allowed" : "pointer",
-              fontFamily: fonts[fontChoice], boxShadow: detecting || !detectImage ? "none" : T.shadowGlow,
-              marginBottom: 24, transition: "all 0.3s",
-            }}>
-              {detecting ? "⏳ Analyzing artwork..." : detectTab === "style" ? "🎨 Analyze Style & Mood" : "🤖 Detect AI Art"}
-            </button>
-
-            {/* Result */}
-            {detectResult && (
-              <div className="fadeIn" style={{
-                background: T.gradCard, border: `1px solid ${T.accent}`,
-                borderRadius: 20, padding: 28, boxShadow: T.shadowGlow,
-              }}>
-                {detectResult.type === "style" ? (
-                  <>
-                    <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
-                      {[
-                        ["🎨 Style", detectResult.style],
-                        ["🌊 Mood", detectResult.mood],
-                        ["📅 Period", detectResult.period],
-                        ["✅ Confidence", `${detectResult.confidence}%`],
-                      ].map(([label, val]) => (
-                        <div key={label} style={{
-                          flex: "1 1 140px", background: T.surface, borderRadius: 12,
-                          padding: "14px 16px", border: `1px solid ${T.border}`,
-                        }}>
-                          <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 4 }}>{label}</div>
-                          <div style={{ fontSize: 17, fontWeight: 700, color: T.accent }}>{val}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{
-                      background: T.accentSoft, borderRadius: 12, padding: "14px 18px",
-                      border: `1px solid ${T.accentGlow}`, color: T.text, fontSize: 14, lineHeight: 1.7,
+    {/* ── ART DETECT ── */}
+    {museTab === "detect" && (
+      <div>
+        <div style={{ display: "flex", gap: 4, marginBottom: 24, background: T.surface, borderRadius: 12, padding: 4 }}>
+          {[["style", "🖼️ Style & Mood Analysis"], ["ai", "🤖 AI Detection"]].map(([key, label]) => (
+            <button key={key} onClick={() => { setDetectTab(key); setDetectResult(null); }} style={{
+              flex: 1, padding: "10px 16px", borderRadius: 10, border: "none", cursor: "pointer",
+              background: detectTab === key ? T.bgCard : "transparent",
+              color: detectTab === key ? T.accent : T.textMuted,
+              fontFamily: fonts[fontChoice], fontSize: 14, fontWeight: 600,
+              boxShadow: detectTab === key ? T.shadow : "none", transition: "all 0.2s",
+            }}>{label}</button>
+          ))}
+        </div>
+        <label htmlFor="art-upload" style={{
+          display: "block", border: `2px dashed ${detectImagePreview ? T.accent : T.border}`,
+          borderRadius: 20, padding: detectImagePreview ? "20px" : "60px 40px",
+          textAlign: "center", marginBottom: 20, background: detectImagePreview ? T.accentSoft : T.bgCard,
+          cursor: "pointer", transition: "all 0.3s",
+        }}>
+          {detectImagePreview ? (
+            <img src={detectImagePreview} alt="Preview" style={{
+              maxHeight: 280, maxWidth: "100%", borderRadius: 12, objectFit: "contain",
+            }} />
+          ) : (
+            <>
+              <div style={{ fontSize: 56, marginBottom: 16 }}>📁</div>
+              <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Drop your artwork here</div>
+              <div style={{ color: T.textMuted, fontSize: 14 }}>or click to browse • PNG, JPG, WEBP supported</div>
+            </>
+          )}
+        </label>
+        <input id="art-upload" type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
+        {detectImagePreview && (
+          <button onClick={() => { setDetectImage(null); setDetectImagePreview(null); setDetectResult(null); }} style={{
+            display: "block", margin: "0 auto 16px", padding: "6px 16px", borderRadius: 8,
+            border: `1px solid ${T.border}`, background: T.surface, color: T.textMuted,
+            cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice],
+          }}>✕ Remove image</button>
+        )}
+        <button onClick={handleDetect} disabled={detecting || !detectImage} style={{
+          width: "100%", padding: "14px 24px", borderRadius: 12, border: "none",
+          background: detecting || !detectImage ? T.surface : `linear-gradient(135deg, ${T.warm2}, ${T.accent})`,
+          color: detecting || !detectImage ? T.textMuted : "#fff",
+          fontSize: 16, fontWeight: 600, cursor: detecting || !detectImage ? "not-allowed" : "pointer",
+          fontFamily: fonts[fontChoice], boxShadow: detecting || !detectImage ? "none" : T.shadowGlow,
+          marginBottom: 24, transition: "all 0.3s",
+        }}>
+          {detecting ? "⏳ Analyzing artwork..." : detectTab === "style" ? "🎨 Analyze Style & Mood" : "🤖 Detect AI Art"}
+        </button>
+        {detectResult && (
+          <div className="fadeIn" style={{
+            background: T.gradCard, border: `1px solid ${T.accent}`,
+            borderRadius: 20, padding: 28, boxShadow: T.shadowGlow,
+          }}>
+            {detectResult.type === "style" ? (
+              <>
+                <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+                  {[
+                    ["🎨 Style", detectResult.style],
+                    ["🌊 Mood", detectResult.mood],
+                    ["📅 Period", detectResult.period],
+                    ["✅ Confidence", `${detectResult.confidence}%`],
+                  ].map(([label, val]) => (
+                    <div key={label} style={{
+                      flex: "1 1 140px", background: T.surface, borderRadius: 12,
+                      padding: "14px 16px", border: `1px solid ${T.border}`,
                     }}>
-                      💡 {detectResult.description || `This artwork exhibits characteristics consistent with ${detectResult.style} — note the distinctive brushwork and emotional composition that conveys a ${detectResult.mood?.toLowerCase()} atmosphere.`}
+                      <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 4 }}>{label}</div>
+                      <div style={{ fontSize: 17, fontWeight: 700, color: T.accent }}>{val}</div>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ textAlign: "center", marginBottom: 24 }}>
-                      <div style={{ fontSize: 64, marginBottom: 8 }}>{detectResult.isAI ? "🤖" : "👨‍🎨"}</div>
-                      <div style={{
-                        fontSize: 28, fontWeight: 800, fontFamily: "'Cormorant Garamond', serif",
-                        color: detectResult.isAI ? T.accent : T.warm1,
-                      }}>
-                        {detectResult.isAI ? "AI Generated" : "Human Created"}
-                      </div>
-                      <div style={{ color: T.textMuted, fontSize: 15, marginTop: 4 }}>
-                        {detectResult.confidence}% confidence
-                      </div>
+                  ))}
+                </div>
+                <div style={{
+                  background: T.accentSoft, borderRadius: 12, padding: "14px 18px",
+                  border: `1px solid ${T.accentGlow}`, color: T.text, fontSize: 14, lineHeight: 1.7,
+                }}>
+                  💡 {detectResult.description}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 24 }}>
+                  <div style={{ fontSize: 64, marginBottom: 8 }}>{detectResult.isAI ? "🤖" : "👨‍🎨"}</div>
+                  <div style={{
+                    fontSize: 28, fontWeight: 800, fontFamily: "'Cormorant Garamond', serif",
+                    color: detectResult.isAI ? T.accent : T.warm1,
+                  }}>
+                    {detectResult.isAI ? "AI Generated" : "Human Created"}
+                  </div>
+                  <div style={{ color: T.textMuted, fontSize: 15, marginTop: 4 }}>
+                    {detectResult.confidence}% confidence
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {detectResult.signals?.map((s, i) => (
+                    <div key={i} style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      background: T.surface, borderRadius: 10, padding: "10px 16px",
+                      border: `1px solid ${T.border}`, fontSize: 14,
+                    }}>
+                      <span style={{ color: detectResult.isAI ? T.accent : T.warm1 }}>
+                        {detectResult.isAI ? "⚡" : "✍️"}
+                      </span>
+                      {s}
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {detectResult.signals?.map((s, i) => (
-                        <div key={i} style={{
-                          display: "flex", alignItems: "center", gap: 10,
-                          background: T.surface, borderRadius: 10, padding: "10px 16px",
-                          border: `1px solid ${T.border}`, fontSize: 14,
-                        }}>
-                          <span style={{ color: detectResult.isAI ? T.accent : T.warm1 }}>
-                            {detectResult.isAI ? "⚡" : "✍️"}
-                          </span>
-                          {s}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
+      </div>
+    )}
 
-        {/* ── MUSE AI CHAT TAB ── */}
-        {activeTab === "chat" && (
-          <div style={{ maxWidth: 740, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
-            <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 4 }}>
-              🤖 <span style={{ color: T.accent }}>Muse</span> AI
-            </h2>
-            <p style={{ color: T.textMuted, marginBottom: 24, fontSize: 16 }}>
-              Your AI art companion — ask about techniques, history, color theory, and more.
-            </p>
-            <div style={{
-              background: T.bgCard, border: `1px solid ${T.border}`,
-              borderRadius: 20, display: "flex", flexDirection: "column", height: 520,
-              boxShadow: T.shadow, overflow: "hidden",
-            }}>
-              {/* Messages */}
-              <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-                {chatMessages.map((msg, i) => (
-                  <div key={i} style={{
-                    display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-                    animation: "fadeIn 0.3s ease",
-                  }}>
-                    {msg.role === "assistant" && (
-                      <div style={{
-                        width: 32, height: 32, borderRadius: "50%", flexShrink: 0, marginRight: 8, marginTop: 2,
-                        background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
-                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
-                      }}>🎨</div>
-                    )}
-                    <div style={{
-                      maxWidth: "72%", padding: "12px 16px", borderRadius: 16, fontSize: 15, lineHeight: 1.65,
-                      background: msg.role === "user" ? `linear-gradient(135deg, ${T.warm2}, ${T.accent})` : T.surface,
-                      color: msg.role === "user" ? "#fff" : T.text,
-                      borderBottomRightRadius: msg.role === "user" ? 4 : 16,
-                      borderBottomLeftRadius: msg.role === "assistant" ? 4 : 16,
-                      border: msg.role === "assistant" ? `1px solid ${T.border}` : "none",
-                    }}>{msg.text}</div>
-                  </div>
-                ))}
-                {isTyping && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
-                    }}>🎨</div>
-                    <div style={{ background: T.surface, padding: "12px 18px", borderRadius: 16, border: `1px solid ${T.border}` }}>
-                      <span style={{ animation: "pulse 1s infinite", display: "inline-block" }}>●</span>
-                      <span style={{ animation: "pulse 1s 0.2s infinite", display: "inline-block", margin: "0 4px" }}>●</span>
-                      <span style={{ animation: "pulse 1s 0.4s infinite", display: "inline-block" }}>●</span>
-                    </div>
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
-              {/* Input */}
-              <div style={{
-                padding: "14px 16px", borderTop: `1px solid ${T.border}`,
-                display: "flex", gap: 10, background: T.bgSecondary,
-              }}>
-                <input
-                  value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendChat()}
-                  placeholder="Ask about techniques, styles, art history..."
-                  style={{
-                    flex: 1, padding: "10px 16px", borderRadius: 12,
-                    border: `1px solid ${T.border}`, background: T.inputBg,
-                    color: T.text, fontSize: 14, fontFamily: fonts[fontChoice], outline: "none",
-                  }}
-                />
-                <button onClick={sendChat} style={{
-                  padding: "10px 20px", borderRadius: 12, border: "none",
-                  background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
-                  color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600,
-                  fontFamily: fonts[fontChoice],
-                }}>Send ↑</button>
-              </div>
-            </div>
-            {/* Quick prompts */}
-            <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {["How do I start oil painting?", "Explain color theory", "Who influenced Van Gogh?", "Tips for composition"].map(q => (
-                <button key={q} onClick={() => { setChatInput(q); }} style={{
-                  padding: "7px 14px", borderRadius: 20, border: `1px solid ${T.border}`,
-                  background: T.surface, color: T.textMuted, cursor: "pointer",
-                  fontSize: 13, fontFamily: fonts[fontChoice],
-                }}>{q}</button>
-              ))}
-            </div>
-          </div>
-        )}
+  </div>
+)}
         {/* ── COMMUNITIES TAB ── */}
 
         {activeTab === "communities" && (
