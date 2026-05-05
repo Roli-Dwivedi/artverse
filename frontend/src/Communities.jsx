@@ -271,14 +271,12 @@ export default function Communities({ theme = "warm" }) {
       e.target.parentNode.style.background = `linear-gradient(135deg, ${community.color}, ${community.color}66)`;
     }}
   />
+  
   {/* Dark overlay */}
   <div style={{
     position: "absolute", inset: 0,
     background: "rgba(0,0,0,0.35)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 36,
   }}>
-    {community.emoji}
   </div>
   {joinedCommunities.has(community.id) && (
     <div style={{
