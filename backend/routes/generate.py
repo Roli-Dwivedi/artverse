@@ -6,7 +6,7 @@ import io
 generate_bp = Blueprint('generate', __name__)
 
 HF_API_KEY = os.getenv("HF_API_KEY")
-MODEL_URL = MODEL_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-1"
+MODEL_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2-1"
 @generate_bp.route('/api/generate', methods=['POST'])
 def generate_art():
     try:

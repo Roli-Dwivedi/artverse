@@ -19,7 +19,7 @@ def detect_style():
         mime_type = image_file.content_type or 'image/jpeg'
 
         response = client.chat.completions.create(
-            model=model="llama-3.2-11b-vision-preview",
+            model="llama-3.2-11b-vision-preview",
             messages=[
                 {
                     "role": "user",
