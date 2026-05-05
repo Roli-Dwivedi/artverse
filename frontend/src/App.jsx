@@ -1067,8 +1067,6 @@ nav button { padding: 6px 8px !important; }
       </div>
     )}
 
-  </main>
-
 
         {/* ── COMMUNITIES TAB ── */}
 
