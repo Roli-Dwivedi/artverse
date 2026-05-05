@@ -6,7 +6,7 @@ import base64
 generate_bp = Blueprint('generate', __name__)
 
 HF_API_KEY = os.getenv("HF_API_KEY")
-MODEL_URL = "https://router.huggingface.co/fal-ai/models/stabilityai/stable-diffusion-xl-base-1.0"
+MODEL_URL = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell"
 
 @generate_bp.route('/api/generate', methods=['POST'])
 def generate_art():
@@ -27,8 +27,7 @@ def generate_art():
         payload = {
             "inputs": enhanced_prompt,
             "parameters": {
-                "num_inference_steps": 25,
-                "guidance_scale": 7.5,
+                "num_inference_steps": 4,
                 "width": 512,
                 "height": 512,
             }
