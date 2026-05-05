@@ -376,6 +376,15 @@ useEffect(() => {
     /* ── MOBILE RESPONSIVE ── */
     @media(max-width:768px) {
 
+  /* SHOW hamburger */
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  /* HIDE scrolling tabs */
+  .nav-tabs {
+    display: none !important;
+  }
       /* Nav — hide tab labels, show only icons */
       nav { padding: 0 10px !important; gap: 4px !important; }
       /* Nav — show only icons on mobile */
@@ -451,6 +460,20 @@ nav button { padding: 6px 8px !important; }
         borderBottom: `1px solid ${T.border}`,
         display: "flex", alignItems: "center", gap: 8, padding: "0 20px", height: 60,
       }}>
+      {/* Mobile Hamburger */}
+<button 
+  onClick={() => setSidebarOpen(true)}
+  style={{
+    display: "none",
+    fontSize: 20,
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+  }}
+  className="mobile-menu-btn"
+>
+  ☰
+</button>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: 24 }}>
           <div style={{
@@ -468,11 +491,14 @@ nav button { padding: 6px 8px !important; }
 
         {/* Nav tabs - desktop */}
         {/* Nav tabs */}
-<div style={{ 
-  display: "flex", gap: 2, flex: 1, 
-  overflowX: "auto", overflowY: "hidden",
-  scrollbarWidth: "none", msOverflowStyle: "none",
-}}>
+<div 
+  className="nav-tabs"
+  style={{ 
+    display: "flex", gap: 2, flex: 1, 
+    overflowX: "auto", overflowY: "hidden",
+    scrollbarWidth: "none", msOverflowStyle: "none",
+  }}
+>
   {NAV_ITEMS.map(item => (
     <button key={item.id} onClick={() => setActiveTab(item.id)} style={{
       padding: "6px 10px", borderRadius: 8, border: "none", cursor: "pointer",
@@ -513,6 +539,83 @@ nav button { padding: 6px 8px !important; }
 </button>
         </div>
       </nav>
+      {/* SIDEBAR (Mobile) */}
+      <>
+      {/*Overlay*/}
+{sidebarOpen && (
+  <>
+    {/* Overlay */}
+    <div
+      onClick={() => setSidebarOpen(false)}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        zIndex: 200,
+      }}
+    />
+
+    {/* Sidebar */}
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      height: "100%",
+      width: 260,
+      background: T.bgCard,
+      borderRight: `1px solid ${T.border}`,
+      zIndex: 300,
+      padding: 20,
+      transform: "translateX(0)",
+      transition: "0.3s",
+      boxShadow: T.shadow,
+    
+    transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+  transition: "transform 0.3s ease",
+}}>
+      
+      {/* Close button */}
+      <button 
+        onClick={() => setSidebarOpen(false)}
+        style={{
+          marginBottom: 20,
+          fontSize: 18,
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        ✕
+      </button>
+
+      {/* Nav Items */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveTab(item.id);
+              setSidebarOpen(false);
+            }}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "none",
+              cursor: "pointer",
+              textAlign: "left",
+              fontFamily: fonts[fontChoice],
+              background: activeTab === item.id ? T.accentSoft : "transparent",
+              color: activeTab === item.id ? T.accent : T.text,
+              fontSize: 14,
+            }}
+          >
+            {item.icon} {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  </>
+)}
       {/* UPLOAD MODAL */}
 {showUpload && (
   <div style={{
