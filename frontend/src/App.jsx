@@ -1367,6 +1367,7 @@ setShowEditProfile(false);
       </footer>
     </div>
   );
+}
   function ArtistAvatar({ artist, T }) {
   const [img, setImg] = useState(null);
 
