@@ -66,12 +66,54 @@ const SAMPLE_ARTWORKS = [
 ];
 
 const HISTORICAL_ARTISTS = [
-  { name: "Leonardo da Vinci", era: "Renaissance", known: "Mona Lisa, The Last Supper", emoji: "🎨" },
-  { name: "Vincent van Gogh", era: "Post-Impressionism", known: "Starry Night, Sunflowers", emoji: "🌻" },
-  { name: "Frida Kahlo", era: "Surrealism", known: "Self-portraits, symbolic art", emoji: "🌺" },
-  { name: "Pablo Picasso", era: "Cubism", known: "Guernica, Les Demoiselles", emoji: "🖼️" },
-  { name: "Claude Monet", era: "Impressionism", known: "Water Lilies, Haystacks", emoji: "🌸" },
-  { name: "Rembrandt", era: "Dutch Golden Age", known: "The Night Watch, self-portraits", emoji: "🕯️" },
+  {
+    name: "Leonardo da Vinci",
+    era: "Renaissance",
+    known: "Mona Lisa, The Last Supper",
+    emoji: "🎨",
+    wikipediaName: "Leonardo_da_Vinci",
+    bio: "Leonardo da Vinci (1452–1519) was an Italian polymath — painter, scientist, engineer, and inventor. Born in Vinci, Tuscany, he is widely regarded as one of the greatest painters in history. His insatiable curiosity and precise observation of the natural world made his art breathtakingly lifelike for its era."
+  },
+  {
+    name: "Vincent van Gogh",
+    era: "Post-Impressionism",
+    known: "Starry Night, Sunflowers",
+    emoji: "🌻",
+    wikipediaName: "Vincent_van_Gogh",
+    bio: "Vincent van Gogh (1853–1890) was a Dutch painter who created over 2,100 works in just a decade. Largely unrecognized during his lifetime, he struggled with mental illness throughout his career. His bold colors and expressive brushwork profoundly influenced 20th-century art."
+  },
+  {
+    name: "Frida Kahlo",
+    era: "Surrealism",
+    known: "Self-portraits, symbolic art",
+    emoji: "🌺",
+    wikipediaName: "Frida_Kahlo",
+    bio: "Frida Kahlo (1907–1954) was a Mexican painter known for her deeply personal and symbolic self-portraits. After a severe bus accident at 18 left her in lifelong pain, she turned to painting as a form of expression. Her work blends Mexican folk art, surrealism, and raw autobiography."
+  },
+  {
+    name: "Pablo Picasso",
+    era: "Cubism",
+    known: "Guernica, Les Demoiselles",
+    emoji: "🖼️",
+    wikipediaName: "Pablo_Picasso",
+    bio: "Pablo Picasso (1881–1973) was a Spanish painter and co-founder of Cubism. Extraordinarily prolific, he produced over 20,000 works across painting, sculpture, ceramics, and printmaking. His style evolved constantly, making him one of the most versatile artists ever."
+  },
+  {
+    name: "Claude Monet",
+    era: "Impressionism",
+    known: "Water Lilies, Haystacks",
+    emoji: "🌸",
+    wikipediaName: "Claude_Monet",
+    bio: "Claude Monet (1840–1926) was a French painter and the founder of Impressionism. He was obsessed with capturing the fleeting effects of light and atmosphere. His famous Water Lilies series, painted in his garden at Giverny, remains one of the most beloved sequences of paintings in history."
+  },
+  {
+    name: "Rembrandt",
+    era: "Dutch Golden Age",
+    known: "The Night Watch, self-portraits",
+    emoji: "🕯️",
+    wikipediaName: "Rembrandt",
+    bio: "Rembrandt van Rijn (1606–1669) was a Dutch master renowned for his unmatched use of light and shadow. He painted over 80 self-portraits across his lifetime. His ability to capture human emotion with raw honesty made him the greatest painter of the Dutch Golden Age."
+  },
 ];
 
 
@@ -1185,7 +1227,7 @@ nav button { padding: 6px 8px !important; }
                   onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = T.shadowGlow; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = T.shadow; }}
                 >
-                  <div style={{ fontSize: 44, marginBottom: 14 }}>{artist.emoji}</div>
+                  <ArtistAvatar artist={artist} T={T} />
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{artist.name}</div>
                   <div style={{
                     display: "inline-block", padding: "3px 10px", borderRadius: 6,
@@ -1444,11 +1486,49 @@ setShowEditProfile(false);
       </footer>
     </div>
   );
-  function ArtistDetailPage({ artist, onBack, T, fonts, fontChoice }) {
-  const [artworks, setArtworks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  function ArtistAvatar({ artist, T }) {
+  const [img, setImg] = useState(null);
 
   useEffect(() => {
+    if (!artist.wikipediaName) return;
+    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${artist.wikipediaName}`)
+      .then(r => r.json())
+      .then(data => { if (data.thumbnail?.source) setImg(data.thumbnail.source); })
+      .catch(() => {});
+  }, [artist.wikipediaName]);
+
+  if (img) return (
+    <img src={img} alt={artist.name} style={{
+      width: 70, height: 70, borderRadius: "50%",
+      objectFit: "cover", border: `2px solid ${T.accent}`,
+      marginBottom: 14,
+    }} />
+  );
+
+  return <div style={{ fontSize: 44, marginBottom: 14 }}>{artist.emoji}</div>;
+}
+ function ArtistDetailPage({ artist, onBack, T, fonts, fontChoice }) {
+  const [artworks, setArtworks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [artistImage, setArtistImage] = useState(null);
+
+  useEffect(() => {
+    // Fetch artist photo from Wikipedia
+    async function fetchArtistImage() {
+      try {
+        const res = await fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${artist.wikipediaName}`
+        );
+        const data = await res.json();
+        if (data.thumbnail?.source) {
+          setArtistImage(data.thumbnail.source);
+        }
+      } catch (err) {
+        console.error("Wikipedia image error:", err);
+      }
+    }
+
+    // Fetch artworks from Met Museum
     async function fetchArtworks() {
       try {
         setLoading(true);
@@ -1473,6 +1553,8 @@ setShowEditProfile(false);
         setLoading(false);
       }
     }
+
+    fetchArtistImage();
     fetchArtworks();
   }, [artist.name]);
 
@@ -1488,12 +1570,31 @@ setShowEditProfile(false);
 
       {/* Artist Header */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 20,
+        display: "flex", alignItems: "center", gap: 24,
         marginBottom: 28, background: T.gradCard,
         border: `1px solid ${T.border}`, borderRadius: 20,
         padding: 28, boxShadow: T.shadow,
       }}>
-        <div style={{ fontSize: 64 }}>{artist.emoji}</div>
+        {/* Artist Photo or Emoji fallback */}
+        {artistImage ? (
+          <img
+            src={artistImage}
+            alt={artist.name}
+            style={{
+              width: 110, height: 110, borderRadius: "50%",
+              objectFit: "cover", border: `3px solid ${T.accent}`,
+              flexShrink: 0,
+            }}
+          />
+        ) : (
+          <div style={{
+            width: 110, height: 110, borderRadius: "50%",
+            background: T.accentSoft, display: "flex",
+            alignItems: "center", justifyContent: "center",
+            fontSize: 52, flexShrink: 0,
+          }}>{artist.emoji}</div>
+        )}
+
         <div>
           <h2 style={{
             fontFamily: "'Cormorant Garamond', serif",
