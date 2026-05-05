@@ -128,6 +128,7 @@ const [profileLoading, setProfileLoading] = useState(false);
 const [editBio, setEditBio] = useState("");
 const [editAvatar, setEditAvatar] = useState("");
 const [showEditProfile, setShowEditProfile] = useState(false);
+const [selectedArtist, setSelectedArtist] = useState(null);
   const chatEndRef = useRef(null);
   const T = THEMES[theme];
 
@@ -1147,14 +1148,25 @@ nav button { padding: 6px 8px !important; }
           </div>
         )}
         {/* ── COMMUNITIES TAB ── */}
+
         {activeTab === "communities" && (
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
             <Communities theme={theme} />
           </div>
         )}
+        {/* ── ARTIST DETAIL PAGE ── */}
+{activeTab === "history" && selectedArtist && (
+  <ArtistDetailPage
+    artist={selectedArtist}
+    onBack={() => setSelectedArtist(null)}
+    T={T}
+    fonts={fonts}
+    fontChoice={fontChoice}
+  />
+)}
 
-        {/* ── MASTERS TAB ── */}
-        {activeTab === "history" && (
+{/* ── MASTERS TAB ── */}
+{activeTab === "history" && !selectedArtist && (
           <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
             <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 8 }}>
               🏛️ The <span style={{ color: T.accent }}>Masters</span>
@@ -1182,7 +1194,7 @@ nav button { padding: 6px 8px !important; }
                   <div style={{ color: T.textMuted, fontSize: 14, lineHeight: 1.6 }}>
                     <strong>Known for:</strong> {artist.known}
                   </div>
-                  <button style={{
+                  <button onClick={() => setSelectedArtist(artist)} style={{
                     marginTop: 16, width: "100%", padding: "8px 16px", borderRadius: 10,
                     border: `1px solid ${T.border}`, background: T.surface, color: T.text,
                     cursor: "pointer", fontSize: 13, fontFamily: fonts[fontChoice],
@@ -1432,4 +1444,133 @@ setShowEditProfile(false);
       </footer>
     </div>
   );
+  function ArtistDetailPage({ artist, onBack, T, fonts, fontChoice }) {
+  const [artworks, setArtworks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchArtworks() {
+      try {
+        setLoading(true);
+        const searchRes = await fetch(
+          `https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&q=${encodeURIComponent(artist.name)}`
+        );
+        const searchData = await searchRes.json();
+        const ids = (searchData.objectIDs || []).slice(0, 12);
+
+        const details = await Promise.all(
+          ids.map(id =>
+            fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
+              .then(r => r.json())
+          )
+        );
+
+        const withImages = details.filter(d => d.primaryImageSmall);
+        setArtworks(withImages);
+      } catch (err) {
+        console.error("Met API error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchArtworks();
+  }, [artist.name]);
+
+  return (
+    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
+      {/* Back button */}
+      <button onClick={onBack} style={{
+        marginBottom: 24, padding: "8px 18px", borderRadius: 10,
+        border: `1px solid ${T.border}`, background: T.surface,
+        color: T.text, cursor: "pointer", fontSize: 14,
+        fontFamily: fonts[fontChoice],
+      }}>← Back to Masters</button>
+
+      {/* Artist Header */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 20,
+        marginBottom: 28, background: T.gradCard,
+        border: `1px solid ${T.border}`, borderRadius: 20,
+        padding: 28, boxShadow: T.shadow,
+      }}>
+        <div style={{ fontSize: 64 }}>{artist.emoji}</div>
+        <div>
+          <h2 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 36, fontWeight: 700, marginBottom: 6,
+          }}>{artist.name}</h2>
+          <span style={{
+            display: "inline-block", padding: "4px 12px", borderRadius: 8,
+            background: T.accentSoft, color: T.accent, fontSize: 13, marginBottom: 10,
+          }}>{artist.era}</span>
+          <p style={{ color: T.textMuted, fontSize: 15, lineHeight: 1.7, maxWidth: 600 }}>
+            <strong>Known for:</strong> {artist.known}
+          </p>
+          {artist.bio && (
+            <p style={{ color: T.textMuted, fontSize: 14, lineHeight: 1.7, marginTop: 8, maxWidth: 600 }}>
+              {artist.bio}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Artworks Grid */}
+      <h3 style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: 26, fontWeight: 700, marginBottom: 16,
+      }}>Works from the Met Museum</h3>
+
+      {loading && (
+        <div style={{ textAlign: "center", padding: 60, color: T.textMuted }}>
+          Loading artworks...
+        </div>
+      )}
+
+      {!loading && artworks.length === 0 && (
+        <div style={{ textAlign: "center", padding: 60, color: T.textMuted }}>
+          No artworks found in the Met Museum collection.
+        </div>
+      )}
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+        gap: 18,
+      }}>
+        {artworks.map((work, i) => (
+          <div key={i} style={{
+            background: T.gradCard, border: `1px solid ${T.border}`,
+            borderRadius: 16, overflow: "hidden", boxShadow: T.shadow,
+            transition: "transform 0.3s",
+          }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+          >
+            <img
+              src={work.primaryImageSmall}
+              alt={work.title}
+              style={{ width: "100%", height: 200, objectFit: "cover" }}
+              onError={e => e.target.style.display = "none"}
+            />
+            <div style={{ padding: "12px 14px" }}>
+              <div style={{
+                fontWeight: 600, fontSize: 14, marginBottom: 4,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }}>{work.title}</div>
+              <div style={{ color: T.textMuted, fontSize: 12 }}>
+                {work.objectDate || "Date unknown"}
+              </div>
+              {work.medium && (
+                <div style={{
+                  color: T.textMuted, fontSize: 11, marginTop: 4,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}>{work.medium}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 }
