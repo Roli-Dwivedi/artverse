@@ -543,8 +543,7 @@ nav button { padding: 6px 8px !important; }
       <>
       {/*Overlay*/}
 {sidebarOpen && (
-  <>
-    {/* Overlay */}
+   
     <div
       onClick={() => setSidebarOpen(false)}
       style={{
@@ -554,25 +553,25 @@ nav button { padding: 6px 8px !important; }
         zIndex: 200,
       }}
     />
-
+    )}
     {/* Sidebar */}
     <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      height: "100%",
-      width: 260,
-      background: T.bgCard,
-      borderRight: `1px solid ${T.border}`,
-      zIndex: 300,
-      padding: 20,
-      transform: "translateX(0)",
-      transition: "0.3s",
-      boxShadow: T.shadow,
-    
-    transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+  position: "fixed",
+  top: 0,
+  left: 0,
+  height: "100%",
+  width: 260,
+  background: T.bgCard,
+  borderRight: `1px solid ${T.border}`,
+  zIndex: 300,
+  padding: 20,
+  boxShadow: T.shadow,
+
+  /* ✅ ONLY THESE */
+  transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
   transition: "transform 0.3s ease",
-}}>
+}}
+  >
       
       {/* Close button */}
       <button 
@@ -615,7 +614,7 @@ nav button { padding: 6px 8px !important; }
       </div>
     </div>
   </>
-)}
+
       {/* UPLOAD MODAL */}
 {showUpload && (
   <div style={{
