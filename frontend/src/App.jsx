@@ -832,7 +832,103 @@ nav button { padding: 6px 8px !important; }
           </div>
         )}
 
+{/* ── MUSE AI TAB ── */}
+{activeTab === "chat" && (
+  <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px" }} className="fadeIn">
+    <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 700, marginBottom: 4 }}>
+      🎨 <span style={{ color: T.accent }}>Muse</span> AI
+    </h2>
+    <p style={{ color: T.textMuted, marginBottom: 20, fontSize: 16 }}>
+      Your AI art companion — chat, generate art, and analyze artworks.
+    </p>
+    <div style={{ display: "flex", gap: 4, marginBottom: 28, background: T.surface, borderRadius: 12, padding: 4, width: "fit-content" }}>
+      {[["chat", "💬 Chat"], ["generate", "✨ AI Studio"], ["detect", "🔍 Art Detect"]].map(([key, label]) => (
+        <button key={key} onClick={() => setMuseTab(key)} style={{
+          padding: "9px 20px", borderRadius: 9, border: "none", cursor: "pointer",
+          background: museTab === key ? T.bgCard : "transparent",
+          color: museTab === key ? T.accent : T.textMuted,
+          fontFamily: fonts[fontChoice], fontSize: 14, fontWeight: museTab === key ? 600 : 400,
+          boxShadow: museTab === key ? T.shadow : "none", transition: "all 0.2s",
+        }}>{label}</button>
+      ))}
+    </div>
 
+    {museTab === "chat" && (
+      <div>
+        <div style={{
+          background: T.bgCard, border: `1px solid ${T.border}`,
+          borderRadius: 20, display: "flex", flexDirection: "column", height: 520,
+          boxShadow: T.shadow, overflow: "hidden",
+        }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            {chatMessages.map((msg, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                {msg.role === "assistant" && (
+                  <div style={{
+                    width: 32, height: 32, borderRadius: "50%", flexShrink: 0, marginRight: 8, marginTop: 2,
+                    background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
+                  }}>🎨</div>
+                )}
+                <div style={{
+                  maxWidth: "72%", padding: "12px 16px", borderRadius: 16, fontSize: 15, lineHeight: 1.65,
+                  background: msg.role === "user" ? `linear-gradient(135deg, ${T.warm2}, ${T.accent})` : T.surface,
+                  color: msg.role === "user" ? "#fff" : T.text,
+                  borderBottomRightRadius: msg.role === "user" ? 4 : 16,
+                  borderBottomLeftRadius: msg.role === "assistant" ? 4 : 16,
+                  border: msg.role === "assistant" ? `1px solid ${T.border}` : "none",
+                }}>{msg.text}</div>
+              </div>
+            ))}
+            {isTyping && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%",
+                  background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14,
+                }}>🎨</div>
+                <div style={{ background: T.surface, padding: "12px 18px", borderRadius: 16, border: `1px solid ${T.border}` }}>
+                  <span style={{ display: "inline-block" }}>●</span>
+                  <span style={{ display: "inline-block", margin: "0 4px" }}>●</span>
+                  <span style={{ display: "inline-block" }}>●</span>
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+          <div style={{
+            padding: "14px 16px", borderTop: `1px solid ${T.border}`,
+            display: "flex", gap: 10, background: T.bgSecondary,
+          }}>
+            <input
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendChat()}
+              placeholder="Ask about techniques, styles, art history..."
+              style={{
+                flex: 1, padding: "10px 16px", borderRadius: 12,
+                border: `1px solid ${T.border}`, background: T.inputBg,
+                color: T.text, fontSize: 14, fontFamily: fonts[fontChoice], outline: "none",
+              }}
+            />
+            <button onClick={sendChat} style={{
+              padding: "10px 20px", borderRadius: 12, border: "none",
+              background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+              color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600,
+            }}>Send ↑</button>
+          </div>
+        </div>
+        <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {["How do I start oil painting?", "Explain color theory", "Who influenced Van Gogh?", "Tips for composition", "What is chiaroscuro?", "Best brushes for watercolor?", "How to mix skin tones?", "What makes Monet's style unique?"].map(q => (
+            <button key={q} onClick={() => setChatInput(q)} style={{
+              padding: "7px 14px", borderRadius: 20, border: `1px solid ${T.border}`,
+              background: T.surface, color: T.textMuted, cursor: "pointer",
+              fontSize: 13, fontFamily: fonts[fontChoice],
+            }}>{q}</button>
+          ))}
+        </div>
+      </div>
+    )}
 
     {/* ── AI STUDIO ── */}
     {museTab === "generate" && (
@@ -1064,9 +1160,11 @@ nav button { padding: 6px 8px !important; }
             )}
           </div>
         )}
-      </div>
+     </div>
     )}
 
+  </div>
+)}
 
         {/* ── COMMUNITIES TAB ── */}
 
