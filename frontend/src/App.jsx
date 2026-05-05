@@ -469,6 +469,7 @@ nav button { padding: 6px 8px !important; }
     background: "transparent",
     border: "none",
     cursor: "pointer",
+     color: T.text,  
   }}
   className="mobile-menu-btn"
 >
@@ -582,6 +583,7 @@ nav button { padding: 6px 8px !important; }
           background: "transparent",
           border: "none",
           cursor: "pointer",
+           color: T.text,   // ✅ THIS LINE
         }}
       >
         ✕
