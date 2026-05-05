@@ -1067,8 +1067,9 @@ nav button { padding: 6px 8px !important; }
       </div>
     )}
 
-  </div>
-)}
+  </main>
+
+
         {/* ── COMMUNITIES TAB ── */}
 
         {activeTab === "communities" && (
