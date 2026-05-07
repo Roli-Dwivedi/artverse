@@ -73,7 +73,9 @@ export default function Communities({ theme = "warm" }) {
     .card-hover { transition: transform 0.25s ease, box-shadow 0.25s ease; }
     .card-hover:hover { transform: translateY(-3px); }
     .btn-hover { transition: all 0.2s ease; }
-    .btn-hover:hover { opacity: 0.85; transform: scale(0.98); }
+   .btn-hover:hover { opacity: 0.85; transform: scale(0.98); }
+.community-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+@media (max-width: 768px) { .community-layout { grid-template-columns: 1fr; } }
   `;
 
   const toggleJoin = (id) => {
@@ -366,7 +368,7 @@ export default function Communities({ theme = "warm" }) {
 
       {/* COMMUNITY DETAIL VIEW */}
       {activeCommunity && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
+        <div className="community-layout">
 
           {/* Posts feed */}
           <div>
