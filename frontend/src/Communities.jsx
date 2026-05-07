@@ -247,13 +247,13 @@ const submitNewCommunity = () => {
       {!activeCommunity && (
         <>
           {/* Search + tabs */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center",justifyContent: "space-between"  }}>
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="🔍  Search communities..."
               style={{
-                flex: 1, minWidth: 200, padding: "11px 16px", borderRadius: 10,
+                flex: "1 1 200px", minWidth: 500, padding: "11px 16px", borderRadius: 10,
                 border: `1px solid ${T.border}`, background: T.inputBg,
                 color: T.text, fontSize: 14, outline: "none",
               }}
