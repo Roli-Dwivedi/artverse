@@ -64,6 +64,9 @@ export default function Communities({ theme = "warm" }) {
   const [posts, setPosts] = useState(SAMPLE_POSTS);
   const [feedPosts, setFeedPosts] = useState(ALL_POSTS);
   const [activeTab, setActiveTab] = useState("all"); // all | joined
+  const [showNewCommunityModal, setShowNewCommunityModal] = useState(false);
+const [newCommunity, setNewCommunity] = useState({ name: "", desc: "", category: "General" });
+const [communities, setCommunities] = useState(COMMUNITIES);
 
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Crimson+Pro:wght@300;400;600&display=swap');
@@ -116,8 +119,25 @@ export default function Communities({ theme = "warm" }) {
     setNewPostText("");
     setShowNewPost(false);
   };
-
-  const filteredCommunities = COMMUNITIES.filter(c =>
+const submitNewCommunity = () => {
+  if (!newCommunity.name.trim()) return;
+  const created = {
+    id: Date.now(),
+    name: newCommunity.name,
+    desc: newCommunity.desc || "A new creative community.",
+    emoji: "🎨",
+    members: 1,
+    posts: 0,
+    color: "#2d5a27",
+    tags: [newCommunity.category],
+    coverImage: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&q=80",
+  };
+  setCommunities(prev => [created, ...prev]);
+  setJoinedCommunities(prev => new Set([...prev, created.id]));
+  setNewCommunity({ name: "", desc: "", category: "General" });
+  setShowNewCommunityModal(false);
+};
+  const filteredCommunities = communities.filter(c =>
     activeTab === "joined" ? joinedCommunities.has(c.id) : true
   ).filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -250,6 +270,18 @@ export default function Communities({ theme = "warm" }) {
                 }}>{label} {key === "joined" ? `(${joinedCommunities.size})` : ""}</button>
               ))}
             </div>
+            <button
+  onClick={() => setShowNewCommunityModal(true)}
+  className="btn-hover"
+  style={{
+    padding: "9px 18px", borderRadius: 10, border: "none",
+    background: `linear-gradient(135deg, ${T.warm1}, ${T.accent})`,
+    color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600,
+    whiteSpace: "nowrap",
+  }}
+>
+  + New Community
+</button>
           </div>
 
           {/* Community grid */}
@@ -487,6 +519,117 @@ export default function Communities({ theme = "warm" }) {
           </div>
         </div>
       )}
+      {/* NEW COMMUNITY MODAL */}
+{showNewCommunityModal && (
+  <div style={{
+    position: "fixed", inset: 0, zIndex: 1000,
+    background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    padding: 20,
+  }}
+    onClick={(e) => { if (e.target === e.currentTarget) setShowNewCommunityModal(false); }}
+  >
+    <div className="fadeUp" style={{
+      background: T.bgCard, border: `1px solid ${T.accent}`,
+      borderRadius: 20, padding: 32, width: "100%", maxWidth: 480,
+      boxShadow: `0 0 40px ${T.accentGlow}`,
+    }}>
+      <h3 style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: 28, fontWeight: 700, marginBottom: 6, marginTop: 0,
+      }}>
+        🎨 Create a <span style={{ color: T.accent }}>Community</span>
+      </h3>
+      <p style={{ color: T.textMuted, fontSize: 14, marginBottom: 24 }}>
+        Build a space for artists who share your passion.
+      </p>
+
+      {/* Name */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6 }}>
+          Community Name *
+        </label>
+        <input
+          value={newCommunity.name}
+          onChange={e => setNewCommunity(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="e.g. Pastel Dreams, Ink & Quill..."
+          style={{
+            width: "100%", padding: "11px 14px", borderRadius: 10,
+            border: `1px solid ${T.border}`, background: T.inputBg,
+            color: T.text, fontSize: 14, outline: "none",
+          }}
+        />
+      </div>
+
+      {/* Description */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6 }}>
+          Description
+        </label>
+        <textarea
+          value={newCommunity.desc}
+          onChange={e => setNewCommunity(prev => ({ ...prev, desc: e.target.value }))}
+          placeholder="What is this community about?"
+          rows={3}
+          style={{
+            width: "100%", padding: "11px 14px", borderRadius: 10,
+            border: `1px solid ${T.border}`, background: T.inputBg,
+            color: T.text, fontSize: 14, outline: "none", resize: "vertical",
+            fontFamily: "'Crimson Pro', Georgia, serif",
+          }}
+        />
+      </div>
+
+      {/* Category */}
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ fontSize: 13, color: T.textMuted, display: "block", marginBottom: 6 }}>
+          Category
+        </label>
+        <select
+          value={newCommunity.category}
+          onChange={e => setNewCommunity(prev => ({ ...prev, category: e.target.value }))}
+          style={{
+            width: "100%", padding: "11px 14px", borderRadius: 10,
+            border: `1px solid ${T.border}`, background: T.inputBg,
+            color: T.text, fontSize: 14, outline: "none", cursor: "pointer",
+          }}
+        >
+          {["General", "Watercolor", "Oil Painting", "Digital Art", "Sketch", "Abstract", "Photography", "Street Art", "Mixed Media"].map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+        <button
+          onClick={() => { setShowNewCommunityModal(false); setNewCommunity({ name: "", desc: "", category: "General" }); }}
+          style={{
+            padding: "10px 20px", borderRadius: 10, border: `1px solid ${T.border}`,
+            background: T.surface, color: T.textMuted, cursor: "pointer", fontSize: 14,
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={submitNewCommunity}
+          disabled={!newCommunity.name.trim()}
+          style={{
+            padding: "10px 24px", borderRadius: 10, border: "none",
+            background: newCommunity.name.trim()
+              ? `linear-gradient(135deg, ${T.warm1}, ${T.accent})`
+              : T.surface,
+            color: newCommunity.name.trim() ? "#fff" : T.textSubtle,
+            cursor: newCommunity.name.trim() ? "pointer" : "not-allowed",
+            fontSize: 14, fontWeight: 600,
+          }}
+        >
+          Create Community 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
