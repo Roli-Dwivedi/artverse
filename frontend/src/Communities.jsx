@@ -530,10 +530,12 @@ const submitNewCommunity = () => {
     onClick={(e) => { if (e.target === e.currentTarget) setShowNewCommunityModal(false); }}
   >
     <div className="fadeUp" style={{
-      background: T.bgCard, border: `1px solid ${T.accent}`,
-      borderRadius: 20, padding: 32, width: "100%", maxWidth: 480,
-      boxShadow: `0 0 40px ${T.accentGlow}`,
-    }}>
+  background: T.bgCard, border: `1px solid ${T.accent}`,
+  borderRadius: 20, padding: 32, width: "100%", maxWidth: 480,
+  boxShadow: `0 0 40px ${T.accentGlow}`,
+  position: "relative", zIndex: 100000,
+  maxHeight: "90vh", overflowY: "auto",
+}}>
       <h3 style={{
         fontFamily: "'Cormorant Garamond', serif",
         fontSize: 28, fontWeight: 700, marginBottom: 6, marginTop: 0,
