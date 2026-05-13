@@ -137,6 +137,9 @@ const [currentUser, setCurrentUser] = useState(() => {
   const [searchQuery, setSearchQuery] = useState("");
   const [galleryArtworks, setGalleryArtworks] = useState(SAMPLE_ARTWORKS);
   const [galleryLoading, setGalleryLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(9);
+const [loadingMore, setLoadingMore] = useState(false);
+const loaderRef = useRef(null);
   const [showUpload, setShowUpload] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadPreview, setUploadPreview] = useState(null);
@@ -173,6 +176,22 @@ const [showEditProfile, setShowEditProfile] = useState(false);
 const [selectedArtist, setSelectedArtist] = useState(null);
 const [museTab, setMuseTab] = useState("chat");
   const chatEndRef = useRef(null);
+  useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && !loadingMore) {
+        setLoadingMore(true);
+        setTimeout(() => {
+          setVisibleCount(prev => prev + 9);
+          setLoadingMore(false);
+        }, 800);
+      }
+    },
+    { threshold: 1.0 }
+  );
+  if (loaderRef.current) observer.observe(loaderRef.current);
+  return () => observer.disconnect();
+}, [loadingMore]);
   const T = THEMES[theme];
 
   useEffect(() => {
@@ -200,12 +219,12 @@ useEffect(() => {
 }, [activeTab]);
 
   const filteredArtworks = galleryArtworks.filter(a => {
-    const matchSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.style.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStyle = activeStyle === "All" || a.style === activeStyle;
-    return matchSearch && matchStyle;
-  });
+  const matchSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.style.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchStyle = activeStyle === "All" || a.style === activeStyle;
+  return matchSearch && matchStyle;
+}).slice(0, visibleCount);
 
   const toggleLike = (id) => {
     setLikedArtworks(prev => {
@@ -367,6 +386,7 @@ useEffect(() => {
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
     @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
     @keyframes spin { to { transform: rotate(360deg); } }
+
     @keyframes glow { 0%,100% { box-shadow: 0 0 10px ${T.accentGlow}; } 50% { box-shadow: 0 0 30px ${T.accentGlow}, 0 0 60px ${T.accentSoft}; } }
     .fadeIn { animation: fadeIn 0.5s ease forwards; }
     .masonry { columns: 3; column-gap: 16px; }
@@ -926,6 +946,23 @@ nav button { padding: 6px 8px !important; }
                   </div>
                 </div>
               ))}
+              {/* Infinite scroll loader */}
+<div ref={loaderRef} style={{ textAlign: "center", padding: "32px 0" }}>
+  {loadingMore && (
+    <div style={{ color: T.textMuted, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+      <div style={{
+        width: 20, height: 20, borderRadius: "50%",
+        border: `2px solid ${T.border}`,
+        borderTop: `2px solid ${T.accent}`,
+        animation: "spin 0.8s linear infinite",
+      }} />
+      Loading more artworks...
+    </div>
+  )}
+  {!loadingMore && visibleCount >= galleryArtworks.length && galleryArtworks.length > 0 && (
+    <div style={{ color: T.textSubtle, fontSize: 13 }}>✨ You've seen all artworks</div>
+  )}
+</div>
             </div>
             {filteredArtworks.length === 0 && (
               <div style={{ textAlign: "center", padding: 60, color: T.textMuted }}>
