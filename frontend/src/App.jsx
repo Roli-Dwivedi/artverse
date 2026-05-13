@@ -182,16 +182,19 @@ const [museTab, setMuseTab] = useState("chat");
       if (entries[0].isIntersecting && !loadingMore) {
         setLoadingMore(true);
         setTimeout(() => {
-          setVisibleCount(prev => prev + 9);
-          setLoadingMore(false);
+          setVisibleCount(prev => {
+            const next = prev + 9;
+            setLoadingMore(false);
+            return next;
+          });
         }, 800);
       }
     },
-    { threshold: 1.0 }
+    { threshold: 0.1 }
   );
   if (loaderRef.current) observer.observe(loaderRef.current);
   return () => observer.disconnect();
-}, [loadingMore]);
+}, [loadingMore, galleryArtworks]);
   const T = THEMES[theme];
 
   useEffect(() => {
@@ -207,6 +210,7 @@ useEffect(() => {
         setGalleryArtworks(data);
       }
     }).catch(() => {}); // keeps sample data on error
+    setVisibleCount(9);
   }
 }, [activeTab]);
 
@@ -948,7 +952,7 @@ nav button { padding: 6px 8px !important; }
               ))}
               {/* Infinite scroll loader */}
 <div ref={loaderRef} style={{ textAlign: "center", padding: "32px 0" }}>
-  {loadingMore && (
+  {loadingMore && visibleCount < galleryArtworks.length && (
     <div style={{ color: T.textMuted, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
       <div style={{
         width: 20, height: 20, borderRadius: "50%",
@@ -959,7 +963,7 @@ nav button { padding: 6px 8px !important; }
       Loading more artworks...
     </div>
   )}
-  {!loadingMore && visibleCount >= galleryArtworks.length && galleryArtworks.length > 0 && (
+  {visibleCount >= galleryArtworks.length && galleryArtworks.length > 0 && (
     <div style={{ color: T.textSubtle, fontSize: 13 }}>✨ You've seen all artworks</div>
   )}
 </div>
