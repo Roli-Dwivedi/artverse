@@ -522,10 +522,11 @@ const submitNewCommunity = () => {
       {/* NEW COMMUNITY MODAL */}
 {showNewCommunityModal && (
   <div style={{
-    position: "fixed", inset: 0, zIndex: 99999,
-    background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: 20,
+    position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999,
+background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+display: "flex", alignItems: "flex-start", justifyContent: "center",
+paddingTop: "80px", paddingBottom: "20px",
+overflowY: "auto",
   }}
     onClick={(e) => { if (e.target === e.currentTarget) setShowNewCommunityModal(false); }}
   >
