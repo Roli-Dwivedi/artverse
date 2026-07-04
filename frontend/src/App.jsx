@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
-import BrushStrokeHero from "./BrushStrokeHero";
 import { isLoggedIn, uploadArtwork, removeToken,getArtworks, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile, removeUser } from "./api";
 const THEMES = {
   warm: {
