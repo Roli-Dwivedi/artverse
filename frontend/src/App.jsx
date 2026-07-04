@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
+import BrushStrokeHero from "./BrushStrokeHero";
 import { isLoggedIn, uploadArtwork, removeToken,getArtworks, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile, removeUser } from "./api";
 const THEMES = {
   warm: {
@@ -29,26 +30,26 @@ const THEMES = {
   },
   light: {
     name: "Light Canvas",
-    bg: "#fdf6ee",
-    bgSecondary: "#f5ebe0",
+    bg: "#ffffff",
+    bgSecondary: "#fbf9f6",
     bgCard: "#ffffff",
-    bgCardHover: "#fef9f5",
-    surface: "#ede0d0",
-    border: "#d4b896",
-    text: "#2c1810",
-    textMuted: "#7a5c45",
-    textSubtle: "#a08060",
-    accent: "#0d9488",
-    accentHover: "#0f766e",
-    accentSoft: "rgba(13,148,136,0.1)",
-    accentGlow: "rgba(13,148,136,0.2)",
-    warm1: "#d97706",
-    warm2: "#b45309",
-    warm3: "#92400e",
-    gradHero: "linear-gradient(135deg, #fdf6ee 0%, #f5e8d8 50%, #fdf6ee 100%)",
-    gradCard: "linear-gradient(145deg, #ffffff, #fdf6ee)",
-    shadow: "0 4px 24px rgba(0,0,0,0.08)",
-    shadowGlow: "0 0 20px rgba(13,148,136,0.15)",
+    bgCardHover: "#fdfbf8",
+    surface: "#f5f1ec",
+    border: "rgba(31,26,23,0.12)",
+    text: "#1f1a17",
+    textMuted: "rgba(31,26,23,0.62)",
+    textSubtle: "rgba(31,26,23,0.42)",
+    accent: "#d9633a",
+    accentHover: "#c2542d",
+    accentSoft: "rgba(217,99,58,0.1)",
+    accentGlow: "rgba(217,99,58,0.22)",
+    warm1: "#c7c0ea",
+    warm2: "#f0a7ac",
+    warm3: "#a9ddd8",
+    gradHero: "linear-gradient(135deg, #ffffff 0%, #fbeee7 50%, #ffffff 100%)",
+    gradCard: "linear-gradient(145deg, #ffffff, #fbf9f6)",
+    shadow: "0 4px 24px rgba(31,26,23,0.08)",
+    shadowGlow: "0 0 20px rgba(217,99,58,0.15)",
     inputBg: "#fff",
   },
 };
@@ -123,7 +124,7 @@ const ART_STYLES_DETECT = ["Impressionism", "Oil Painting", "Watercolor", "Digit
 const ART_MOODS = ["Melancholic", "Joyful", "Ethereal", "Tense", "Peaceful", "Mysterious", "Bold", "Dreamy"];
 
 export default function ArtVerse() {
-  const [theme, setTheme] = useState("warm");
+  const [theme, setTheme] = useState("light");
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
 const [currentUser, setCurrentUser] = useState(() => {
   try {
@@ -380,7 +381,7 @@ useEffect(() => {
   };
 
   const css = `
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Crimson+Pro:wght@300;400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Crimson+Pro:wght@300;400;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Crimson Pro', Georgia, serif; }
     ::-webkit-scrollbar { width: 6px; }
@@ -820,17 +821,30 @@ nav button { padding: 6px 8px !important; }
               background: T.gradHero, borderRadius: 24, padding: "48px 40px",
               marginBottom: 32, border: `1px solid ${T.border}`,
               position: "relative", overflow: "hidden",
-            }}>
-              <div style={{
-                position: "absolute", top: -60, right: -60, width: 300, height: 300,
-                borderRadius: "50%", background: T.accentGlow, filter: "blur(80px)",
-              }} />
-              <div style={{
-                position: "absolute", bottom: -40, left: 100, width: 200, height: 200,
-                borderRadius: "50%", background: `rgba(217,119,6,0.15)`, filter: "blur(60px)",
-              }} />
+            }} className="hero">
+              {theme === "light" ? (
+                <BrushStrokeHero style={{ opacity: 0.9 }} />
+              ) : (
+                <>
+                  <div style={{
+                    position: "absolute", top: -60, right: -60, width: 300, height: 300,
+                    borderRadius: "50%", background: T.accentGlow, filter: "blur(80px)",
+                  }} />
+                  <div style={{
+                    position: "absolute", bottom: -40, left: 100, width: 200, height: 200,
+                    borderRadius: "50%", background: `rgba(217,119,6,0.15)`, filter: "blur(60px)",
+                  }} />
+                </>
+              )}
+              {theme === "light" && (
+                <div style={{
+                  position: "absolute", inset: 0,
+                  background: "radial-gradient(ellipse 70% 60% at 8% 40%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.35) 55%, rgba(255,255,255,0) 80%)",
+                }} />
+              )}
               <h1 style={{
-                fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 700,
+                fontFamily: theme === "light" ? "'Fraunces', serif" : "'Cormorant Garamond', serif",
+                fontSize: 52, fontWeight: theme === "light" ? 500 : 700,
                 lineHeight: 1.1, marginBottom: 12, position: "relative",
               }}>
                 Where Art Meets <span style={{
@@ -1797,4 +1811,3 @@ setShowEditProfile(false);
     </div>
   );
 }
-
