@@ -821,9 +821,7 @@ nav button { padding: 6px 8px !important; }
               marginBottom: 32, border: `1px solid ${T.border}`,
               position: "relative", overflow: "hidden",
             }} className="hero">
-              {theme === "light" ? (
-                <BrushStrokeHero style={{ opacity: 0.9 }} />
-              ) : (
+              
                 <>
                   <div style={{
                     position: "absolute", top: -60, right: -60, width: 300, height: 300,
@@ -834,7 +832,7 @@ nav button { padding: 6px 8px !important; }
                     borderRadius: "50%", background: `rgba(217,119,6,0.15)`, filter: "blur(60px)",
                   }} />
                 </>
-              )}
+              
               {theme === "light" && (
                 <div style={{
                   position: "absolute", inset: 0,
