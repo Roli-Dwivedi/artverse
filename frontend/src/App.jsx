@@ -123,7 +123,7 @@ const ART_STYLES_DETECT = ["Impressionism", "Oil Painting", "Watercolor", "Digit
 const ART_MOODS = ["Melancholic", "Joyful", "Ethereal", "Tense", "Peaceful", "Mysterious", "Bold", "Dreamy"];
 
 export default function ArtVerse() {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("warm");
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
 const [currentUser, setCurrentUser] = useState(() => {
   try {
