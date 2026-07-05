@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Communities from "./Communities";
 import Auth from "./Auth";
+import BrushStrokeHero from "./BrushStrokeHero";
 import { isLoggedIn, uploadArtwork, removeToken,getArtworks, sendChatMessage, detectArtStyle, detectAIArt, generateArt, getProfile, getSavedArtworks, deleteSavedArtwork, saveArtwork, updateProfile, removeUser } from "./api";
 const THEMES = {
   warm: {
@@ -123,7 +124,7 @@ const ART_STYLES_DETECT = ["Impressionism", "Oil Painting", "Watercolor", "Digit
 const ART_MOODS = ["Melancholic", "Joyful", "Ethereal", "Tense", "Peaceful", "Mysterious", "Bold", "Dreamy"];
 
 export default function ArtVerse() {
-  const [theme, setTheme] = useState("warm");
+  const [theme, setTheme] = useState("light");
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
 const [currentUser, setCurrentUser] = useState(() => {
   try {
@@ -821,7 +822,9 @@ nav button { padding: 6px 8px !important; }
               marginBottom: 32, border: `1px solid ${T.border}`,
               position: "relative", overflow: "hidden",
             }} className="hero">
-              
+              {theme === "light" ? (
+                <BrushStrokeHero style={{ opacity: 0.9 }} />
+              ) : (
                 <>
                   <div style={{
                     position: "absolute", top: -60, right: -60, width: 300, height: 300,
@@ -832,7 +835,7 @@ nav button { padding: 6px 8px !important; }
                     borderRadius: "50%", background: `rgba(217,119,6,0.15)`, filter: "blur(60px)",
                   }} />
                 </>
-              
+              )}
               {theme === "light" && (
                 <div style={{
                   position: "absolute", inset: 0,
